@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assign Driver | LogiTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --glass: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.1);
+      --glass-hover: rgba(255,255,255,0.08);
+      --primary: #6c63ff;
+      --primary-light: #8b85ff;
+      --accent: #00d4ff;
+      --success: #00e676;
+      --warning: #ffa726;
+      --danger: #ff5252;
+      --text: #e8eaf6;
+      --text-muted: #9ba3c7;
+      --sidebar-width: 260px;
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,212,255,0.1) 0%, transparent 50%);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width); min-height: 100vh;
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--glass-border);
+      padding: 24px 0; position: fixed; top: 0; left: 0;
+      display: flex; flex-direction: column; z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+    .sidebar-logo {
+      padding: 0 24px 32px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-size: 20px; font-weight: 700; }
+    .sidebar-nav { padding: 24px 12px; flex: 1; }
+    .nav-section-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--text-muted);
+      padding: 0 12px; margin: 16px 0 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: 12px;
+      color: var(--text-muted); text-decoration: none;
+      font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer;
+    }
+    .nav-item:hover { background: var(--glass-hover); color: var(--text); }
+    .nav-item.active { background: rgba(108,99,255,0.2); color: var(--primary-light); }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+
+    /* Main */
+    .main { margin-left: var(--sidebar-width); flex: 1; padding: 32px; }
+
+    /* Topbar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-title h1 {
+      font-size: 26px; font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--primary-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .page-title p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Cards */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(20px);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title i { color: var(--primary-light); }
+
+    /* Shipment Summary Banner */
+    .shipment-banner {
+      background: rgba(108,99,255,0.08);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .shipment-banner.show { display: block; }
+    .banner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .banner-item label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-muted);
+    }
+    .banner-item p { font-size: 14px; font-weight: 500; color: var(--text); margin-top: 4px; }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-pending { background: rgba(255,167,38,0.15); color: var(--warning); border: 1px solid rgba(255,167,38,0.3); }
+    .badge-assigned { background: rgba(0,230,118,0.12); color: var(--success); border: 1px solid rgba(0,230,118,0.3); }
+    .badge-transit { background: rgba(0,212,255,0.12); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+    .badge-cancelled { background: rgba(255,82,82,0.12); color: var(--danger); border: 1px solid rgba(255,82,82,0.3); }
+
+    /* Form elements */
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    label.field-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-muted);
+    }
+    .form-control {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px; padding: 11px 14px;
+      font-size: 14px; color: var(--text);
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s; outline: none; width: 100%;
+    }
+    .form-control:focus { border-color: var(--primary); background: rgba(108,99,255,0.06); }
+    .form-control::placeholder { color: var(--text-muted); }
+    select.form-control option { background: #1a1f35; }
+
+    /* Driver cards grid */
+    .drivers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .driver-card {
+      background: rgba(255,255,255,0.04);
+      border: 2px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .driver-card:hover { border-color: var(--primary); background: rgba(108,99,255,0.06); }
+    .driver-card.selected { border-color: var(--primary); background: rgba(108,99,255,0.12); }
+    .driver-card.selected::after {
+      content: '✓';
+      position: absolute; top: 12px; right: 12px;
+      width: 22px; height: 22px;
+      background: var(--primary); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #fff; font-weight: 700;
+      display: flex;
+    }
+
+    .driver-avatar {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 12px;
+    }
+    .driver-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .driver-detail { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+
+    /* Empty / loading states */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-muted); font-size: 14px;
+    }
+    .empty-state i { font-size: 36px; margin-bottom: 12px; display: block; color: var(--primary-light); opacity: 0.5; }
+
+    .loading-dots span {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--primary-light); border-radius: 50%;
+      margin: 0 3px;
+      animation: bounce 1.2s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 12px;
+      font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+    .btn-primary:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+    .btn-ghost {
+      background: var(--glass); color: var(--text-muted);
+      border: 1px solid var(--glass-border);
+    }
+    .btn-ghost:hover { background: var(--glass-hover); color: var(--text); }
+    .btn-danger { background: rgba(255,82,82,0.15); color: var(--danger); border: 1px solid rgba(255,82,82,0.3); }
+    .btn-danger:hover { background: rgba(255,82,82,0.25); }
+
+    /* Alert */
+    .alert {
+      padding: 14px 18px; border-radius: 10px; font-size: 14px;
+      display: none; align-items: center; gap: 10px; margin-bottom: 20px;
+    }
+    .alert.show { display: flex; }
+    .alert-error { background: rgba(255,82,82,0.1); border: 1px solid rgba(255,82,82,0.3); color: #ff8a80; }
+    .alert-success { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.3); color: #69f0ae; }
+    .alert-info { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); color: var(--accent); }
+
+    /* Spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    hr { border: none; border-top: 1px solid var(--glass-border); margin: 20px 0; }
+
+    /* Shipment table (for picking a shipment) */
+    .table-wrapper { overflow-x: auto; border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      text-align: left; padding: 12px 16px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-muted);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s; cursor: pointer;
+    }
+    tbody tr:hover { background: var(--glass-hover); }
+    tbody tr.selected-row { background: rgba(108,99,255,0.1); }
+    tbody td { padding: 13px 16px; color: var(--text); }
+    tbody td.muted { color: var(--text-muted); font-size: 13px; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; padding: 20px 16px; }
+      .drivers-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <span class="logo-text">LogiTrack</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+    <div class="nav-section-label">Shipments</div>
+    <a href="/frontend/shipments/create-shipment.html" class="nav-item"><i class="fas fa-plus-circle"></i> Create Shipment</a>
+    <a href="/frontend/shipments/list.html" class="nav-item"><i class="fas fa-box"></i> All Shipments</a>
+    <a href="/frontend/shipments/assign-shipment.html" class="nav-item active"><i class="fas fa-user-check"></i> Assign Driver</a>
+    <a href="/frontend/shipments/track.html" class="nav-item"><i class="fas fa-map-marker-alt"></i> Track Shipment</a>
+    <div class="nav-section-label">Fleet</div>
+    <a href="/frontend/drivers" class="nav-item"><i class="fas fa-user-tie"></i> Drivers</a>
+    <a href="/frontend/vehicles" class="nav-item"><i class="fas fa-truck"></i> Vehicles</a>
+    <div class="nav-section-label">Account</div>
+    <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">
+      <h1>Assign Driver</h1>
+      <p>Select a pending shipment and assign an available driver</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="history.back()"><i class="fas fa-arrow-left"></i> Back</button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert alert-error" id="alertError"><i class="fas fa-exclamation-circle"></i> <span id="errorMsg"></span></div>
+  <div class="alert alert-success" id="alertSuccess"><i class="fas fa-check-circle"></i> <span id="successMsg"></span></div>
+  <div class="alert alert-info" id="alertInfo"><i class="fas fa-info-circle"></i> <span id="infoMsg"></span></div>
+
+  <!-- STEP 1: Pick a Shipment -->
+  <div class="card" id="step1Card">
+    <div class="section-title"><i class="fas fa-box"></i> Step 1 — Select a Pending Shipment</div>
+
+    <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+      <input class="form-control" id="searchInput" placeholder="Search by ID, city, or cargo..." style="max-width:320px" oninput="filterShipments()"/>
+      <button class="btn btn-ghost" onclick="loadPendingShipments()"><i class="fas fa-sync-alt"></i> Refresh</button>
+    </div>
+
+    <div id="shipmentsTableWrap" class="table-wrapper">
+      <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div><p style="margin-top:12px">Loading pending shipments...</p></div>
+    </div>
+  </div>
+
+  <!-- Shipment Summary Banner (shown after selecting) -->
+  <div class="shipment-banner" id="shipmentBanner">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Selected Shipment</div>
+        <div style="font-size:18px;font-weight:700;color:var(--primary-light)" id="bannerShipmentId">—</div>
+      </div>
+      <span class="badge badge-pending" id="bannerStatus">Pending</span>
+    </div>
+    <div class="banner-grid">
+      <div class="banner-item"><label>From</label><p id="bannerFrom">—</p></div>
+      <div class="banner-item"><label>To</label><p id="bannerTo">—</p></div>
+      <div class="banner-item"><label>Cargo</label><p id="bannerCargo">—</p></div>
+      <div class="banner-item"><label>Weight</label><p id="bannerWeight">—</p></div>
+      <div class="banner-item"><label>Vehicle Needed</label><p id="bannerVehicle">—</p></div>
+      <div class="banner-item"><label>Pickup Date</label><p id="bannerPickup">—</p></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Pick a Driver -->
+  <div class="card" id="step2Card" style="display:none">
+    <div class="section-title"><i class="fas fa-user-tie"></i> Step 2 — Select an Available Driver</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Only showing drivers who are not currently on an active shipment.</p>
+
+    <div id="driversWrap">
+      <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div><p style="margin-top:12px">Loading available drivers...</p></div>
+    </div>
+
+    <input type="hidden" id="selectedDriverId"/>
+  </div>
+
+  <!-- STEP 3: Notes + Confirm -->
+  <div class="card" id="step3Card" style="display:none">
+    <div class="section-title"><i class="fas fa-sticky-note"></i> Step 3 — Notes & Confirm Assignment</div>
+    <div class="form-group">
+      <label class="field-label">Assignment Note (Optional)</label>
+      <textarea class="form-control" id="assignNote" rows="3" placeholder="Any special instructions for the driver..."></textarea>
+    </div>
+
+    <!-- Selected driver summary -->
+    <div id="selectedDriverSummary" style="display:none;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(108,99,255,0.08);border-radius:12px;border:1px solid rgba(108,99,255,0.2)">
+        <div class="driver-avatar">👤</div>
+        <div>
+          <div style="font-size:14px;font-weight:600" id="confirmDriverName">—</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="confirmDriverPhone">—</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="confirmDriverEmail">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="assignBtn" onclick="assignDriver()" disabled>
+        <div class="spinner" id="assignSpinner"></div>
+        <i class="fas fa-user-check" id="assignIcon"></i>
+        <span id="assignText">Assign Driver</span>
+      </button>
+      <button class="btn btn-ghost" onclick="resetForm()"><i class="fas fa-undo"></i> Start Over</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const API = '';  // base URL — empty if same origin
+  const token = () => localStorage.getItem('token');
+
+  let allShipments = [];
+  let selectedShipmentId = null;
+  let selectedDriverId = null;
+
+  // ── On load ────────────────────────────────
+  window.addEventListener('DOMContentLoaded', loadPendingShipments);
+
+  // ── Alerts ────────────────────────────────
+  function showError(msg) {
+    hide(['alertSuccess','alertInfo']);
+    document.getElementById('errorMsg').textContent = msg;
+    document.getElementById('alertError').classList.add('show');
+  }
+  function showSuccess(msg) {
+    hide(['alertError','alertInfo']);
+    document.getElementById('successMsg').textContent = msg;
+    document.getElementById('alertSuccess').classList.add('show');
+  }
+  function showInfo(msg) {
+    hide(['alertError','alertSuccess']);
+    document.getElementById('infoMsg').textContent = msg;
+    document.getElementById('alertInfo').classList.add('show');
+  }
+  function hideAlerts() { hide(['alertError','alertSuccess','alertInfo']); }
+  function hide(ids) { ids.forEach(id => document.getElementById(id).classList.remove('show')); }
+
+  // ── Load Pending Shipments ─────────────────
+  async function loadPendingShipments() {
+    document.getElementById('shipmentsTableWrap').innerHTML = `
+      <div class="empty-state">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <p style="margin-top:12px">Loading pending shipments...</p>
+      </div>`;
+
+    try {
+      const res = await fetch(`${API}/api/shipments?status=Pending&limit=50`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      allShipments = data.data || [];
+      renderShipmentsTable(allShipments);
+    } catch (err) {
+      showError('Failed to load shipments: ' + err.message);
+      document.getElementById('shipmentsTableWrap').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load. Try refreshing.</p></div>`;
+    }
+  }
+
+  // ── Render Shipments Table ─────────────────
+  function renderShipmentsTable(shipments) {
+    if (!shipments.length) {
+      document.getElementById('shipmentsTableWrap').innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No pending shipments found.</p></div>`;
+      return;
+    }
+
+    const rows = shipments.map(s => `
+      <tr onclick="selectShipment('${s._id}')" id="row-${s._id}">
+        <td><span style="font-weight:600;color:var(--primary-light)">${s.shipmentId}</span></td>
+        <td>${s.origin?.city}, ${s.origin?.state}</td>
+        <td>${s.destination?.city}, ${s.destination?.state}</td>
+        <td class="muted">${s.cargoType} · ${s.weight} kg</td>
+        <td class="muted">${s.vehicleType || 'Any'}</td>
+        <td><span class="badge badge-pending">Pending</span></td>
+        <td class="muted">${new Date(s.pickupDate).toLocaleDateString('en-IN')}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('shipmentsTableWrap').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Shipment ID</th><th>From</th><th>To</th>
+            <th>Cargo</th><th>Vehicle</th><th>Status</th><th>Pickup</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // ── Filter Shipments ───────────────────────
+  function filterShipments() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allShipments.filter(s =>
+      s.shipmentId.toLowerCase().includes(q) ||
+      s.origin?.city.toLowerCase().includes(q) ||
+      s.destination?.city.toLowerCase().includes(q) ||
+      s.cargoType.toLowerCase().includes(q)
+    );
+    renderShipmentsTable(filtered);
+  }
+
+  // ── Select Shipment ────────────────────────
+  function selectShipment(id) {
+    selectedShipmentId = id;
+    document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected-row'));
+    const row = document.getElementById(`row-${id}`);
+    if (row) row.classList.add('selected-row');
+
+    const s = allShipments.find(x => x._id === id);
+    if (!s) return;
+
+    // Populate banner
+    document.getElementById('bannerShipmentId').textContent = s.shipmentId;
+    document.getElementById('bannerFrom').textContent = `${s.origin.city}, ${s.origin.state}`;
+    document.getElementById('bannerTo').textContent = `${s.destination.city}, ${s.destination.state}`;
+    document.getElementById('bannerCargo').textContent = s.cargoType;
+    document.getElementById('bannerWeight').textContent = `${s.weight} kg · ${s.quantity} ${s.unit}`;
+    document.getElementById('bannerVehicle').textContent = s.vehicleType || 'Any';
+    document.getElementById('bannerPickup').textContent = new Date(s.pickupDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    document.getElementById('shipmentBanner').classList.add('show');
+
+    // Show step 2
+    document.getElementById('step2Card').style.display = 'block';
+    document.getElementById('step2Card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    loadAvailableDrivers();
+  }
+
+  // ── Load Available Drivers ─────────────────
+  async function loadAvailableDrivers() {
+    document.getElementById('driversWrap').innerHTML = `
+      <div class="empty-state">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <p style="margin-top:12px">Fetching available drivers...</p>
+      </div>`;
+
+    try {
+      const res = await fetch(`${API}/api/shipments/available-drivers`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      renderDriverCards(data.data || []);
+    } catch (err) {
+      document.getElementById('driversWrap').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load drivers: ${err.message}</p></div>`;
+    }
+  }
+
+  // ── Render Driver Cards ─────────────────────
+  function renderDriverCards(drivers) {
+    if (!drivers.length) {
+      document.getElementById('driversWrap').innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-user-slash"></i>
+          <p>No available drivers right now.<br/>All drivers are currently on active shipments.</p>
+        </div>`;
+      return;
+    }
+
+    const initials = name => name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+
+    const cards = drivers.map(d => `
+      <div class="driver-card" id="dcard-${d._id}" onclick="selectDriver('${d._id}', '${d.name}', '${d.phone || ''}', '${d.email}')">
+        <div class="driver-avatar">${initials(d.name)}</div>
+        <div class="driver-name">${d.name}</div>
+        <div class="driver-detail"><i class="fas fa-phone" style="font-size:11px"></i> ${d.phone || 'N/A'}</div>
+        <div class="driver-detail"><i class="fas fa-envelope" style="font-size:11px"></i> ${d.email}</div>
+        ${d.vehicleType ? `<div class="driver-detail" style="margin-top:8px"><i class="fas fa-truck" style="font-size:11px"></i> ${d.vehicleType}</div>` : ''}
+        ${d.licenseNumber ? `<div class="driver-detail"><i class="fas fa-id-card" style="font-size:11px"></i> ${d.licenseNumber}</div>` : ''}
+      </div>
+    `).join('');
+
+    document.getElementById('driversWrap').innerHTML = `
+      <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted)">${drivers.length} driver(s) available</div>
+      <div class="drivers-grid">${cards}</div>`;
+  }
+
+  // ── Select Driver ───────────────────────────
+  function selectDriver(id, name, phone, email) {
+    selectedDriverId = id;
+
+    document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`dcard-${id}`).classList.add('selected');
+
+    // Populate step 3 summary
+    document.getElementById('confirmDriverName').textContent = name;
+    document.getElementById('confirmDriverPhone').textContent = phone || 'N/A';
+    document.getElementById('confirmDriverEmail').textContent = email;
+    document.getElementById('selectedDriverSummary').style.display = 'block';
+
+    // Show step 3 and enable button
+    document.getElementById('step3Card').style.display = 'block';
+    document.getElementById('assignBtn').disabled = false;
+    document.getElementById('step3Card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    hideAlerts();
+  }
+
+  // ── Assign Driver ───────────────────────────
+  async function assignDriver() {
+    if (!selectedShipmentId || !selectedDriverId) {
+      showError('Please select both a shipment and a driver.');
+      return;
+    }
+
+    const btn = document.getElementById('assignBtn');
+    const spinner = document.getElementById('assignSpinner');
+    const icon = document.getElementById('assignIcon');
+    const text = document.getElementById('assignText');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    icon.style.display = 'none';
+    text.textContent = 'Assigning...';
+
+    try {
+      const res = await fetch(`${API}/api/shipments/${selectedShipmentId}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token()}`
+        },
+        body: JSON.stringify({
+          driverId: selectedDriverId,
+          note: document.getElementById('assignNote').value.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      showSuccess(`✅ Driver assigned to ${data.data.shipmentId}. Waiting for driver confirmation.`);
+
+      // Remove shipment from table
+      allShipments = allShipments.filter(s => s._id !== selectedShipmentId);
+      renderShipmentsTable(allShipments);
+
+      // Reset step 2 & 3
+      setTimeout(resetAssignmentSteps, 2000);
+
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      icon.style.display = 'inline';
+      text.textContent = 'Assign Driver';
+    }
+  }
+
+  // ── Reset ───────────────────────────────────
+  function resetAssignmentSteps() {
+    selectedShipmentId = null;
+    selectedDriverId = null;
+    document.getElementById('shipmentBanner').classList.remove('show');
+    document.getElementById('step2Card').style.display = 'none';
+    document.getElementById('step3Card').style.display = 'none';
+    document.getElementById('assignBtn').disabled = true;
+    document.getElementById('selectedDriverSummary').style.display = 'none';
+    document.getElementById('assignNote').value = '';
+  }
+
+  function resetForm() {
+    resetAssignmentSteps();
+    loadPendingShipments();
+    hideAlerts();
+  }
+
+  // ── Logout ────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/frontend/login.html';
+  });
+</script>
+</body>
+</html>

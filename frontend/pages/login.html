@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Log In — LogiFlow</title>
+<link rel="icon" href="../icons/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<!-- Anti-FOUC -->
+<script>
+(function(){var t=localStorage.getItem('lf-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<style>
+:root {
+  --black:#08080a;--bg:#0d0d10;--s1:#131318;--s2:#1a1a20;
+  --border:#26262e;--border2:#32323c;
+  --orange:#FF5500;--orange-l:#FF7733;
+  --cyan:#00D4FF;--cyan-d:#009FBF;
+  --white:#EEEEF4;--text:#C8C8D4;--muted:#72728A;--subtle:#3A3A48;
+  --fD:'Rajdhani',sans-serif;--fM:'IBM Plex Mono',monospace;--fB:'Sora',sans-serif;
+  --r1:3px;--r2:6px;--r3:10px;
+}
+html[data-theme="light"] {
+  --bg:#f5f5f7;--s1:#ffffff;--s2:#eff0f2;
+  --border:#dddde6;--border2:#c8c8d4;
+  --white:#111118;--text:#2a2a38;--muted:#72728A;--subtle:#b0b0c2;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--fB);background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+body::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:64px 64px;opacity:.22;pointer-events:none;
+}
+/* Brand corner decoration */
+body::after{
+  content:'';position:absolute;top:0;left:0;
+  width:240px;height:240px;
+  background:radial-gradient(circle at 0 0,rgba(255,85,0,.12),transparent 70%);
+  pointer-events:none;
+}
+
+/* ─── Layout ─── */
+.auth-wrap{
+  position:relative;z-index:1;
+  width:100%;max-width:440px;
+  margin:1.5rem;
+}
+.auth-brand{
+  display:flex;align-items:center;gap:.625rem;
+  text-decoration:none;margin-bottom:2rem;
+  justify-content:center;
+}
+.auth-mark{
+  width:32px;height:32px;background:var(--orange);
+  clip-path:polygon(0 0,100% 0,100% 68%,68% 100%,0 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fD);font-weight:700;font-size:.9rem;color:#fff;
+}
+.auth-name{
+  font-family:var(--fD);font-weight:700;font-size:1.3rem;
+  letter-spacing:.14em;color:var(--white);text-transform:uppercase;
+}
+.auth-name em{font-style:normal;color:var(--orange)}
+
+.card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:2.5rem;
+  box-shadow:0 0 60px rgba(0,0,0,.35);
+}
+html[data-theme="light"] .card{box-shadow:0 4px 32px rgba(0,0,0,.08)}
+.card-tag{
+  font-family:var(--fM);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:1rem;display:block;
+}
+.card-title{
+  font-family:var(--fD);font-weight:700;font-size:2rem;
+  text-transform:uppercase;color:var(--white);line-height:1;margin-bottom:.5rem;
+}
+.card-sub{font-size:.875rem;color:var(--muted);margin-bottom:2rem}
+.card-sub a{color:var(--orange);text-decoration:none}
+.card-sub a:hover{text-decoration:underline}
+
+/* ─── Form ─── */
+.field{margin-bottom:1.25rem}
+.field-label{
+  display:block;font-family:var(--fM);font-size:.625rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;
+}
+.field-input{
+  width:100%;padding:.8125rem 1rem;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:var(--r1);color:var(--white);
+  font-family:var(--fB);font-size:.9375rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.field-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,85,0,.1)}
+.field-input::placeholder{color:var(--muted)}
+.field-input.err{border-color:#ef4444}
+.field-err{font-size:.75rem;color:#ef4444;margin-top:.375rem;font-family:var(--fM)}
+
+/* Password toggle */
+.field-pw{position:relative}
+.field-pw .field-input{padding-right:3rem}
+.pw-toggle{
+  position:absolute;right:.875rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:1rem;padding:.25rem;
+  transition:color .2s;
+}
+.pw-toggle:hover{color:var(--text)}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:480px){.field-row{grid-template-columns:1fr}}
+
+/* ─── OTP Boxes ─── */
+.otp-boxes{display:flex;gap:.625rem;justify-content:center;margin:1.5rem 0}
+.otp-box{
+  width:46px;height:56px;
+  background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:var(--r2);
+  font-family:var(--fD);font-weight:700;font-size:1.5rem;
+  text-align:center;color:var(--white);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none;appearance:none;
+}
+.otp-box:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,85,0,.12)}
+.otp-box.filled{border-color:var(--orange)}
+.otp-box.err{border-color:#ef4444}
+
+/* ─── Buttons ─── */
+.btn-p{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
+  background:var(--orange);color:#fff;
+  font-family:var(--fM);font-size:.775rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.9375rem;border:none;border-radius:var(--r1);
+  cursor:pointer;transition:all .2s;font-weight:500;
+}
+.btn-p:hover:not(:disabled){background:var(--orange-l);box-shadow:0 4px 20px rgba(255,85,0,.3)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
+  background:transparent;color:var(--muted);
+  font-family:var(--fM);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.875rem;border:1px solid var(--border2);border-radius:var(--r1);
+  cursor:pointer;transition:all .2s;margin-top:.75rem;
+}
+.btn-ghost:hover{color:var(--white);border-color:var(--border2)}
+
+/* ─── Divider ─── */
+.divider{
+  display:flex;align-items:center;gap:.75rem;margin:1.5rem 0;
+  font-family:var(--fM);font-size:.625rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
+}
+.divider::before,.divider::after{content:'';flex:1;border-top:1px solid var(--border)}
+
+/* ─── Forgot password link ─── */
+.forgot{
+  display:block;text-align:right;
+  font-family:var(--fM);font-size:.675rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;margin-top:.375rem;margin-bottom:1.5rem;
+}
+.forgot:hover{color:var(--orange)}
+
+/* ─── Step indicator ─── */
+.steps-ind{display:flex;gap:.5rem;justify-content:center;margin-bottom:2rem}
+.si{
+  width:28px;height:4px;border-radius:2px;
+  background:var(--border2);transition:background .3s;
+}
+.si.on{background:var(--orange)}
+
+/* ─── OTP meta ─── */
+.otp-email{
+  font-family:var(--fM);font-size:.8rem;color:var(--cyan);
+  text-align:center;display:block;margin-bottom:.5rem;font-weight:600;
+}
+.otp-countdown{
+  font-family:var(--fM);font-size:.7rem;letter-spacing:.08em;
+  text-align:center;color:var(--muted);display:block;margin-bottom:1.5rem;
+}
+.otp-resend{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--fM);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--orange);text-decoration:underline;
+}
+.otp-resend:disabled{color:var(--muted);text-decoration:none;cursor:not-allowed}
+
+/* ─── Toast ─── */
+.toast-box{position:fixed;top:1rem;right:1rem;z-index:999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.875rem 1.25rem;
+  background:var(--s1);border:1px solid var(--border2);border-radius:var(--r3);
+  font-size:.875rem;max-width:320px;
+  animation:t-in .3s ease;pointer-events:all;
+}
+.toast.ok{border-left:3px solid var(--orange)}
+.toast.er{border-left:3px solid #ef4444}
+.toast.in{border-left:3px solid var(--cyan)}
+@keyframes t-in{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:none}}
+
+/* ─── Theme toggle ─── */
+.theme-btn{
+  position:fixed;top:1rem;right:1rem;
+  background:var(--s1);border:1px solid var(--border2);
+  border-radius:20px;padding:.375rem .75rem;
+  font-family:var(--fM);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;transition:all .2s;z-index:10;
+}
+.theme-btn:hover{color:var(--white);border-color:var(--border2)}
+
+/* Step transitions */
+.step-panel{display:none}
+.step-panel.active{display:block;animation:step-in .25s ease}
+@keyframes step-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Spinner */
+.spinner{
+  width:16px;height:16px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-p.loading .spinner{display:block}
+.btn-p.loading .btn-text{display:none}
+</style>
+</head>
+<body>
+
+<div class="toast-box" id="toastBox"></div>
+<button class="theme-btn" onclick="toggleTheme()">☀️ / 🌙</button>
+
+<div class="auth-wrap">
+  <a href="../index.html" class="auth-brand">
+    <div class="auth-mark">LF</div>
+    <span class="auth-name">LOGI<em>FLOW</em></span>
+  </a>
+
+  <!-- Step 1: Email + Password -->
+  <div class="card" id="stepLogin">
+    <span class="card-tag">Welcome back</span>
+    <h1 class="card-title">Log In</h1>
+    <p class="card-sub">Don't have an account? <a href="register.html">Create one free →</a></p>
+
+    <div class="field">
+      <label class="field-label" for="loginEmail">Email Address</label>
+      <input class="field-input" type="email" id="loginEmail" placeholder="you@company.com" autocomplete="email"/>
+      <div class="field-err" id="loginEmailErr"></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="loginPassword">Password</label>
+      <div class="field-pw">
+        <input class="field-input" type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password"/>
+        <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)">👁</button>
+      </div>
+      <div class="field-err" id="loginPwErr"></div>
+    </div>
+    <a href="forgot-password.html" class="forgot">Forgot password?</a>
+
+    <button class="btn-p" id="loginBtn" onclick="doLogin()">
+      <div class="spinner"></div>
+      <span class="btn-text">Log In →</span>
+    </button>
+    <button class="btn-ghost" onclick="window.location.href='../index.html'">← Back to Home</button>
+  </div>
+
+  <!-- Step 2: OTP Verification (shown when email not verified) -->
+  <div class="card" id="stepOTP" style="display:none">
+    <span class="card-tag">Email Verification</span>
+    <h1 class="card-title">Verify Email</h1>
+    <p class="card-sub">Enter the 6-digit code sent to:</p>
+    <span class="otp-email" id="otpEmailDisplay"></span>
+    <span class="otp-countdown" id="otpCountdown"></span>
+
+    <div class="otp-boxes">
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o1" onkeyup="otpMove(event,null,'o2')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o2" onkeyup="otpMove(event,'o1','o3')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o3" onkeyup="otpMove(event,'o2','o4')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o4" onkeyup="otpMove(event,'o3','o5')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o5" onkeyup="otpMove(event,'o4','o6')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="o6" onkeyup="otpMove(event,'o5',null)"/>
+    </div>
+
+    <button class="btn-p" id="verifyOTPBtn" onclick="doVerifyOTP()">
+      <div class="spinner"></div>
+      <span class="btn-text">Verify & Continue →</span>
+    </button>
+    <div style="text-align:center;margin-top:1rem;font-family:var(--fM);font-size:.7rem;color:var(--muted)">
+      Didn't receive it?
+      <button class="otp-resend" id="resendBtn" onclick="doResendOTP()" disabled>Resend OTP</button>
+    </div>
+    <button class="btn-ghost" style="margin-top:1rem" onclick="backToLogin()">← Back to Login</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const API = '/api';
+let pendingEmail = '';
+let resendTimer;
+
+/* ─── Theme ─── */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme')||'dark';
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('lf-theme',next);
+}
+
+/* ─── Toast ─── */
+function toast(msg,type='in'){
+  const box=document.getElementById('toastBox');
+  const icons={ok:'✅',er:'❌',in:'ℹ️'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span style="flex:1">${msg}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>`;
+  box.appendChild(el);
+  setTimeout(()=>el.remove(),5000);
+}
+
+/* ─── Password toggle ─── */
+function togglePw(id,btn){
+  const input=document.getElementById(id);
+  input.type=input.type==='password'?'text':'password';
+  btn.textContent=input.type==='password'?'👁':'🙈';
+}
+
+/* ─── Loading state ─── */
+function setLoading(btnId,on){
+  const btn=document.getElementById(btnId);
+  btn.disabled=on;
+  btn.classList.toggle('loading',on);
+}
+
+/* ─── Redirect by role ─── */
+function redirectToDashboard(role){
+  const map={
+    admin:    '../pages/dashboard/admin.html',
+    company:  '../pages/dashboard/company.html',
+    logistics:'../pages/dashboard/logistics.html',
+    manager:  '../pages/dashboard/manager.html',
+    driver:   '../pages/dashboard/driver.html',
+    supplier: '../pages/dashboard/supplier.html',
+    gate:     '../pages/dashboard/gate.html',
+  };
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
+  window.location.href = redirect || map[role] || '../pages/dashboard.html';
+}
+
+/* ─── Check if already logged in ─── */
+(function(){
+  const token = localStorage.getItem('lf-token');
+  const user  = JSON.parse(localStorage.getItem('lf-user')||'null');
+  if(token && user) redirectToDashboard(user.role);
+})();
+
+/* ─── LOGIN ─── */
+async function doLogin(){
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  // Clear errors
+  document.getElementById('loginEmailErr').textContent='';
+  document.getElementById('loginPwErr').textContent='';
+
+  if(!email)    { document.getElementById('loginEmailErr').textContent='Email is required'; return; }
+  if(!password) { document.getElementById('loginPwErr').textContent='Password is required'; return; }
+
+  setLoading('loginBtn',true);
+  try {
+    const res  = await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const data = await res.json();
+
+    if(data.code==='EMAIL_NOT_VERIFIED'){
+      // Show OTP step
+      pendingEmail = data.data?.email || email;
+      document.getElementById('otpEmailDisplay').textContent = pendingEmail;
+      document.getElementById('stepLogin').style.display='none';
+      document.getElementById('stepOTP').style.display='block';
+      startResendTimer();
+      toast('Check your email for a verification code','in');
+      return;
+    }
+
+    if(!data.success){
+      toast(data.message||'Login failed','er');
+      return;
+    }
+
+    // Save session
+    localStorage.setItem('lf-token',   data.data.accessToken);
+    localStorage.setItem('lf-refresh', data.data.refreshToken);
+    localStorage.setItem('lf-user',    JSON.stringify(data.data.user));
+    if(data.data.company) localStorage.setItem('lf-company', JSON.stringify(data.data.company));
+
+    toast(`Welcome back, ${data.data.user.name}!`,'ok');
+    setTimeout(()=>redirectToDashboard(data.data.user.role),500);
+
+  } catch {
+    toast('Connection error. Please try again.','er');
+  } finally {
+    setLoading('loginBtn',false);
+  }
+}
+
+/* ─── OTP input navigation ─── */
+function otpMove(e,prev,next){
+  const v=e.target.value;
+  // Handle paste
+  if(v.length>1){
+    const digits=v.replace(/\D/g,'').slice(0,6);
+    ['o1','o2','o3','o4','o5','o6'].forEach((id,i)=>{
+      const el=document.getElementById(id);
+      if(el&&digits[i]) el.value=digits[i];
+    });
+    document.getElementById('o6')?.focus();
+    return;
+  }
+  if(v&&next) document.getElementById(next)?.focus();
+  if(!v&&e.key==='Backspace'&&prev) document.getElementById(prev)?.focus();
+  e.target.classList.toggle('filled',!!v);
+}
+
+function getOTP(){
+  return ['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
+}
+
+/* ─── VERIFY OTP ─── */
+async function doVerifyOTP(){
+  const otp=getOTP();
+  if(otp.length<6){ toast('Enter all 6 digits','er'); return; }
+
+  setLoading('verifyOTPBtn',true);
+  try {
+    const res  = await fetch(`${API}/auth/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,otp})});
+    const data = await res.json();
+
+    if(!data.success){ toast(data.message||'Invalid OTP','er'); return; }
+
+    localStorage.setItem('lf-token',   data.data.accessToken);
+    localStorage.setItem('lf-refresh', data.data.refreshToken);
+    localStorage.setItem('lf-user',    JSON.stringify(data.data.user));
+
+    toast('Email verified! Redirecting...','ok');
+    setTimeout(()=>redirectToDashboard(data.data.user.role),600);
+
+  } catch {
+    toast('Connection error. Please try again.','er');
+  } finally {
+    setLoading('verifyOTPBtn',false);
+  }
+}
+
+/* ─── RESEND OTP ─── */
+async function doResendOTP(){
+  document.getElementById('resendBtn').disabled=true;
+  try {
+    const res  = await fetch(`${API}/auth/resend-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail})});
+    const data = await res.json();
+    toast(data.message||'OTP sent','in');
+    startResendTimer();
+  } catch {
+    toast('Failed to resend. Please try again.','er');
+    document.getElementById('resendBtn').disabled=false;
+  }
+}
+
+function startResendTimer(){
+  clearInterval(resendTimer);
+  let secs=60;
+  const btn=document.getElementById('resendBtn');
+  const cd=document.getElementById('otpCountdown');
+  btn.disabled=true;
+  function tick(){
+    cd.textContent=`Code expires in ${secs}s`;
+    if(secs<=0){ clearInterval(resendTimer); btn.disabled=false; cd.textContent='Code expired. Click Resend.'; return; }
+    secs--;
+  }
+  tick();
+  resendTimer=setInterval(tick,1000);
+}
+
+function backToLogin(){
+  document.getElementById('stepOTP').style.display='none';
+  document.getElementById('stepLogin').style.display='block';
+}
+
+/* ─── Enter key ─── */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  if(document.getElementById('stepLogin').style.display!=='none') doLogin();
+  else if(document.getElementById('stepOTP').style.display!=='none') doVerifyOTP();
+});
+
+/* ─── URL messages ─── */
+const params=new URLSearchParams(window.location.search);
+if(params.get('logged_out')) toast('You have been logged out.','in');
+if(params.get('expired'))    toast('Session expired. Please log in again.','er');
+if(params.get('reset'))      toast('Password reset! Please log in.','ok');
+</script>
+</body>
+</html>

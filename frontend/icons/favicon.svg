@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#08080a"/>
+  <polygon points="8,8 56,8 56,44 44,56 8,56" fill="#FF5500"/>
+  <text x="16" y="42" font-family="Arial Black,sans-serif" font-weight="900" font-size="26" fill="#ffffff" letter-spacing="-1">LF</text>
+</svg>

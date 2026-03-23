@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicles | LogiTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--bg:#0a0f1e;--glass:rgba(255,255,255,.05);--glass-border:rgba(255,255,255,.1);
+      --glass-hover:rgba(255,255,255,.08);--primary:#6c63ff;--primary-light:#8b85ff;
+      --accent:#00d4ff;--success:#00e676;--warning:#ffa726;--danger:#ff5252;
+      --text:#e8eaf6;--text-muted:#9ba3c7;--sidebar-width:260px;--radius:16px;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;
+      background-image:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 80% 80%,rgba(0,212,255,.1) 0%,transparent 50%);}
+    .sidebar{width:var(--sidebar-width);min-height:100vh;background:rgba(255,255,255,.03);
+      border-right:1px solid var(--glass-border);padding:24px 0;position:fixed;top:0;left:0;
+      display:flex;flex-direction:column;z-index:100;backdrop-filter:blur(20px);}
+    .sidebar-logo{padding:0 24px 32px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--glass-border);}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .logo-text{font-size:20px;font-weight:700;}
+    .sidebar-nav{padding:24px 12px;flex:1;}
+    .nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;
+      color:var(--text-muted);padding:0 12px;margin:16px 0 8px;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;
+      color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:all .2s;}
+    .nav-item:hover{background:var(--glass-hover);color:var(--text);}
+    .nav-item.active{background:rgba(108,99,255,.2);color:var(--primary-light);}
+    .nav-item i{width:18px;text-align:center;font-size:15px;}
+    .main{margin-left:var(--sidebar-width);flex:1;padding:32px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+    .page-title h1{font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--primary-light));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .page-title p{font-size:14px;color:var(--text-muted);margin-top:4px;}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;
+      font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .2s;font-family:'Inter',sans-serif;}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 4px 20px rgba(108,99,255,.35);}
+    .btn-primary:hover{transform:translateY(-1px);}
+    .btn-ghost{background:var(--glass);color:var(--text-muted);border:1px solid var(--glass-border);}
+    .btn-ghost:hover{background:var(--glass-hover);color:var(--text);}
+    .btn-sm{padding:7px 14px;font-size:12px;}
+
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .stat-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);
+      padding:20px;backdrop-filter:blur(20px);}
+    .stat-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
+    .stat-value{font-size:28px;font-weight:700;margin-top:8px;}
+
+    .filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+    .search-wrap{position:relative;flex:1;min-width:200px;max-width:300px;}
+    .search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;}
+    .search-input{width:100%;padding:10px 12px 10px 36px;background:var(--glass);border:1px solid var(--glass-border);
+      border-radius:10px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .2s;}
+    .search-input:focus{border-color:var(--primary);}
+    .search-input::placeholder{color:var(--text-muted);}
+    .filter-select{padding:10px 14px;background:var(--glass);border:1px solid var(--glass-border);
+      border-radius:10px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;cursor:pointer;}
+    .filter-select option{background:#1a1f35;}
+
+    /* Table */
+    .table-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);
+      backdrop-filter:blur(20px);overflow:hidden;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:14px;}
+    thead th{text-align:left;padding:14px 16px;font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:.8px;color:var(--text-muted);border-bottom:1px solid var(--glass-border);}
+    tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;}
+    tbody tr:hover{background:var(--glass-hover);}
+    tbody td{padding:14px 16px;color:var(--text);}
+    td.muted{color:var(--text-muted);font-size:13px;}
+
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .b-available{background:rgba(0,230,118,.12);color:var(--success);border:1px solid rgba(0,230,118,.3);}
+    .b-inuse{background:rgba(0,212,255,.12);color:var(--accent);border:1px solid rgba(0,212,255,.3);}
+    .b-maintenance{background:rgba(255,167,38,.12);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+    .b-inactive{background:rgba(255,82,82,.12);color:var(--danger);border:1px solid rgba(255,82,82,.3);}
+
+    .alert-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;
+      background:rgba(255,82,82,.12);color:var(--danger);border:1px solid rgba(255,82,82,.2);margin:2px;}
+
+    .empty-state{text-align:center;padding:50px;color:var(--text-muted);}
+    .empty-state i{font-size:40px;display:block;margin-bottom:12px;opacity:.25;}
+
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);
+      z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#12182e;border:1px solid var(--glass-border);border-radius:20px;
+      padding:32px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
+    .modal h3{font-size:18px;font-weight:700;margin-bottom:24px;}
+    .form-group{margin-bottom:16px;}
+    .form-group label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:.8px;color:var(--text-muted);margin-bottom:7px;}
+    .form-control{width:100%;padding:11px 14px;background:rgba(255,255,255,.04);
+      border:1px solid var(--glass-border);border-radius:10px;font-size:14px;color:var(--text);
+      font-family:'Inter',sans-serif;outline:none;transition:all .2s;}
+    .form-control:focus{border-color:var(--primary);}
+    .form-control::placeholder{color:var(--text-muted);}
+    select.form-control option{background:#1a1f35;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .section-sep{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;
+      color:var(--text-muted);margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--glass-border);}
+    .modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;}
+
+    @media(max-width:900px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}
+      .stats-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <span class="logo-text">LogiTrack</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a href="/pages/dashboards/admin.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+    <div class="nav-label">Shipments</div>
+    <a href="/pages/shipments/create-shipment.html" class="nav-item"><i class="fas fa-plus-circle"></i> Create Shipment</a>
+    <a href="/pages/shipments/assign-shipment.html" class="nav-item"><i class="fas fa-user-check"></i> Assign Driver</a>
+    <a href="/pages/shipments/track.html" class="nav-item"><i class="fas fa-map-marker-alt"></i> Track Shipment</a>
+    <div class="nav-label">Fleet</div>
+    <a href="/pages/fleet/drivers.html" class="nav-item"><i class="fas fa-user-tie"></i> Drivers</a>
+    <a href="/pages/fleet/vehicles.html" class="nav-item active"><i class="fas fa-truck"></i> Vehicles</a>
+    <a href="/pages/fleet/gps-tracking.html" class="nav-item"><i class="fas fa-satellite-dish"></i> GPS Tracking</a>
+    <div class="nav-label">Account</div>
+    <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">
+      <h1>Vehicle Fleet</h1>
+      <p>Manage vehicles, compliance dates and driver assignments</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Vehicle</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Vehicles</div><div class="stat-value" id="statTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" style="color:var(--success)" id="statAvail">—</div></div>
+    <div class="stat-card"><div class="stat-label">In Use</div><div class="stat-value" style="color:var(--accent)" id="statInUse">—</div></div>
+    <div class="stat-card"><div class="stat-label">⚠️ Compliance Alerts</div><div class="stat-value" style="color:var(--danger)" id="statAlerts">—</div></div>
+  </div>
+
+  <div class="filters">
+    <div class="search-wrap">
+      <i class="fas fa-search"></i>
+      <input class="search-input" id="searchInput" placeholder="Search reg. no, make, model..." oninput="filterVehicles()"/>
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="loadVehicles()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="in-use">In Use</option>
+      <option value="maintenance">Maintenance</option>
+    </select>
+    <select class="filter-select" id="typeFilter" onchange="loadVehicles()">
+      <option value="">All Types</option>
+      <option>Mini Truck</option><option>LCV</option><option>HCV</option>
+      <option>Trailer</option><option>Container</option><option>Tanker</option><option>Reefer</option>
+    </select>
+    <button class="btn btn-ghost" onclick="loadVehicles()"><i class="fas fa-sync-alt"></i> Refresh</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Reg. Number</th><th>Type</th><th>Make / Model</th>
+            <th>Capacity</th><th>Assigned Driver</th>
+            <th>Status</th><th>Compliance</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="vehicleTableBody">
+          <tr><td colspan="8"><div class="empty-state"><div style="display:flex;justify-content:center;margin-bottom:12px"><div class="loading-dots"><span></span><span></span><span></span></div></div>Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Add Vehicle Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>🚛 Add New Vehicle</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Registration Number</label><input class="form-control" id="vReg" placeholder="MH12AB1234"/></div>
+      <div class="form-group">
+        <label>Vehicle Type</label>
+        <select class="form-control" id="vType">
+          <option>Mini Truck</option><option>LCV</option><option>HCV</option>
+          <option>Trailer</option><option>Container</option><option>Tanker</option><option>Reefer</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Make</label><input class="form-control" id="vMake" placeholder="e.g. Tata"/></div>
+      <div class="form-group"><label>Model</label><input class="form-control" id="vModel" placeholder="e.g. Ace"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Year</label><input class="form-control" id="vYear" type="number" placeholder="2022"/></div>
+      <div class="form-group"><label>Fuel Type</label>
+        <select class="form-control" id="vFuel">
+          <option>Diesel</option><option>Petrol</option><option>CNG</option><option>Electric</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Max Weight (KG)</label><input class="form-control" id="vWeightKg" type="number" placeholder="5000"/></div>
+      <div class="form-group"><label>Volume (CBM)</label><input class="form-control" id="vVolume" type="number" placeholder="20"/></div>
+    </div>
+    <div class="section-sep">Compliance & Expiry Dates</div>
+    <div class="form-row">
+      <div class="form-group"><label>Insurance Expiry</label><input class="form-control" id="vInsurance" type="date"/></div>
+      <div class="form-group"><label>Permit Expiry</label><input class="form-control" id="vPermit" type="date"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fitness Expiry</label><input class="form-control" id="vFitness" type="date"/></div>
+      <div class="form-group"><label>PUC Expiry</label><input class="form-control" id="vPuc" type="date"/></div>
+    </div>
+    <div class="form-group"><label>GPS Device ID</label><input class="form-control" id="vGps" placeholder="GPS tracker serial number (optional)"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('addModal').classList.remove('show')">Cancel</button>
+      <button class="btn btn-primary" onclick="addVehicle()"><i class="fas fa-save"></i> Save Vehicle</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:5000';
+  const token = () => localStorage.getItem('token');
+  let allVehicles = [];
+
+  window.addEventListener('DOMContentLoaded', loadVehicles);
+
+  async function loadVehicles() {
+    const status = document.getElementById('statusFilter').value;
+    const type   = document.getElementById('typeFilter').value;
+    let url = `${API}/api/vehicles?limit=100`;
+    if (status) url += `&status=${status}`;
+    if (type)   url += `&type=${encodeURIComponent(type)}`;
+
+    try {
+      const res  = await fetch(url, { headers: { Authorization: `Bearer ${token()}` } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      allVehicles = data.data || [];
+      updateStats(allVehicles);
+      renderTable(allVehicles);
+    } catch (err) {
+      document.getElementById('vehicleTableBody').innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${err.message}</p></div></td></tr>`;
+    }
+  }
+
+  function updateStats(vehicles) {
+    document.getElementById('statTotal').textContent  = vehicles.length;
+    document.getElementById('statAvail').textContent  = vehicles.filter(v => v.status === 'available').length;
+    document.getElementById('statInUse').textContent  = vehicles.filter(v => v.status === 'in-use').length;
+    document.getElementById('statAlerts').textContent = vehicles.filter(v => v.complianceAlerts?.length > 0).length;
+  }
+
+  function filterVehicles() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allVehicles.filter(v =>
+      v.registrationNumber.toLowerCase().includes(q) ||
+      v.make.toLowerCase().includes(q) ||
+      v.model.toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+
+  function renderTable(vehicles) {
+    if (!vehicles.length) {
+      document.getElementById('vehicleTableBody').innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-truck"></i><p>No vehicles found.</p></div></td></tr>`;
+      return;
+    }
+
+    document.getElementById('vehicleTableBody').innerHTML = vehicles.map(v => {
+      const statusClass = { available:'b-available', 'in-use':'b-inuse', maintenance:'b-maintenance', inactive:'b-inactive' }[v.status] || 'b-available';
+      const alerts = (v.complianceAlerts || []).map(a => `<span class="alert-tag">⚠️ ${a}</span>`).join('');
+
+      return `<tr>
+        <td><strong style="color:var(--primary-light)">${v.registrationNumber}</strong></td>
+        <td class="muted">${v.vehicleType}</td>
+        <td>${v.make} ${v.model} ${v.year ? `<span style="color:var(--text-muted);font-size:12px">(${v.year})</span>` : ''}</td>
+        <td class="muted">${v.capacity?.weightKg?.toLocaleString('en-IN')} kg</td>
+        <td>${v.assignedDriver ? `<span style="font-size:13px">${v.assignedDriver.name}</span><br><span style="font-size:11px;color:var(--text-muted)">${v.assignedDriver.phone}</span>` : '<span style="color:var(--text-muted);font-size:12px">Unassigned</span>'}</td>
+        <td><span class="badge ${statusClass}">${v.status}</span></td>
+        <td>${alerts || '<span style="color:var(--success);font-size:12px">✓ OK</span>'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="editStatus('${v._id}','${v.status}')"><i class="fas fa-edit"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openAddModal() { document.getElementById('addModal').classList.add('show'); }
+
+  async function addVehicle() {
+    const payload = {
+      registrationNumber: document.getElementById('vReg').value.trim().toUpperCase(),
+      vehicleType: document.getElementById('vType').value,
+      make:  document.getElementById('vMake').value.trim(),
+      model: document.getElementById('vModel').value.trim(),
+      year:  Number(document.getElementById('vYear').value) || undefined,
+      fuelType: document.getElementById('vFuel').value,
+      capacity: {
+        weightKg:  Number(document.getElementById('vWeightKg').value),
+        volumeCbm: Number(document.getElementById('vVolume').value) || 0,
+      },
+      compliance: {
+        insuranceExpiry: document.getElementById('vInsurance').value || undefined,
+        permitExpiry:    document.getElementById('vPermit').value    || undefined,
+        fitnessExpiry:   document.getElementById('vFitness').value   || undefined,
+        pucExpiry:       document.getElementById('vPuc').value       || undefined,
+      },
+      gpsDeviceId: document.getElementById('vGps').value.trim(),
+    };
+
+    if (!payload.registrationNumber || !payload.make || !payload.model || !payload.capacity.weightKg) {
+      return alert('Registration number, make, model and weight capacity are required.');
+    }
+
+    try {
+      const res  = await fetch(`${API}/api/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      document.getElementById('addModal').classList.remove('show');
+      loadVehicles();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  }
+
+  function editStatus(id, current) {
+    const next = { available: 'in-use', 'in-use': 'maintenance', maintenance: 'available' }[current] || 'available';
+    if (!confirm(`Change status to "${next}"?`)) return;
+    fetch(`${API}/api/vehicles/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ status: next }),
+    }).then(() => loadVehicles());
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = '/pages/login.html';
+  });
+</script>
+</body>
+</html>

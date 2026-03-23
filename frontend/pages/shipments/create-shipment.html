@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Shipment | LogiTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --glass: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.1);
+      --glass-hover: rgba(255,255,255,0.08);
+      --primary: #6c63ff;
+      --primary-light: #8b85ff;
+      --accent: #00d4ff;
+      --success: #00e676;
+      --warning: #ffa726;
+      --danger: #ff5252;
+      --text: #e8eaf6;
+      --text-muted: #9ba3c7;
+      --sidebar-width: 260px;
+      --radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,212,255,0.1) 0%, transparent 50%);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--glass-border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text { font-size: 20px; font-weight: 700; color: var(--text); }
+
+    .sidebar-nav { padding: 24px 12px; flex: 1; }
+
+    .nav-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      padding: 0 12px;
+      margin: 16px 0 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover { background: var(--glass-hover); color: var(--text); }
+    .nav-item.active { background: rgba(108,99,255,0.2); color: var(--primary-light); }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+
+    /* ── Main Content ── */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 32px;
+      max-width: calc(100vw - var(--sidebar-width));
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .page-title h1 {
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-title p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost {
+      background: var(--glass);
+      color: var(--text-muted);
+      border: 1px solid var(--glass-border);
+    }
+    .btn-ghost:hover { background: var(--glass-hover); color: var(--text); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+    .btn-primary:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+
+    /* ── Form Card ── */
+    .form-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(20px);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title i {
+      color: var(--primary-light);
+      font-size: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .form-grid.two-col { grid-template-columns: 1fr 1fr; }
+    .form-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      background: rgba(108,99,255,0.06);
+    }
+
+    .form-control::placeholder { color: var(--text-muted); }
+
+    select.form-control option { background: #1a1f35; color: var(--text); }
+
+    textarea.form-control { resize: vertical; min-height: 90px; }
+
+    /* Priority Badge Selector */
+    .priority-selector { display: flex; gap: 10px; }
+
+    .priority-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .priority-btn[data-priority="Normal"].selected { background: rgba(0,230,118,0.12); border-color: var(--success); color: var(--success); }
+    .priority-btn[data-priority="High"].selected { background: rgba(255,167,38,0.12); border-color: var(--warning); color: var(--warning); }
+    .priority-btn[data-priority="Urgent"].selected { background: rgba(255,82,82,0.12); border-color: var(--danger); color: var(--danger); }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid var(--glass-border); margin: 8px 0 24px; }
+
+    /* Step indicator */
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+    }
+
+    .step.active .step-dot { background: var(--primary); color: #fff; }
+    .step.done .step-dot { background: var(--success); color: #fff; }
+    .step.pending .step-dot { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text-muted); }
+
+    .step-label { font-size: 13px; font-weight: 500; }
+    .step.active .step-label { color: var(--text); }
+    .step.pending .step-label { color: var(--text-muted); }
+
+    .step-line { flex: 1; height: 1px; background: var(--glass-border); min-width: 40px; }
+
+    /* Alert */
+    .alert {
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .alert.show { display: flex; }
+    .alert-error { background: rgba(255,82,82,0.1); border: 1px solid rgba(255,82,82,0.3); color: #ff8a80; }
+    .alert-success { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.3); color: #69f0ae; }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .form-grid.three-col { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .main { padding: 20px 16px; }
+      .form-grid, .form-grid.two-col, .form-grid.three-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <span class="logo-text">LogiTrack</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+
+    <div class="nav-section-label">Shipments</div>
+    <a href="/shipments/create.html" class="nav-item active"><i class="fas fa-plus-circle"></i> Create Shipment</a>
+    <a href="/shipments/list.html" class="nav-item"><i class="fas fa-box"></i> All Shipments</a>
+    <a href="/shipments/track.html" class="nav-item"><i class="fas fa-map-marker-alt"></i> Track Shipment</a>
+
+    <div class="nav-section-label">Fleet</div>
+    <a href="/drivers" class="nav-item"><i class="fas fa-user-tie"></i> Drivers</a>
+    <a href="/vehicles" class="nav-item"><i class="fas fa-truck"></i> Vehicles</a>
+
+    <div class="nav-section-label">Gate</div>
+    <a href="/gate" class="nav-item"><i class="fas fa-door-open"></i> Gate Entry</a>
+
+    <div class="nav-section-label">Account</div>
+    <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- ── Main Content ──────────────────────────── -->
+<main class="main">
+
+  <div class="topbar">
+    <div class="page-title">
+      <h1>Create Shipment</h1>
+      <p>Fill in the details below to register a new shipment</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="history.back()"><i class="fas fa-arrow-left"></i> Back</button>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step-1">
+      <div class="step-dot">1</div>
+      <span class="step-label">Route</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step pending" id="step-2">
+      <div class="step-dot">2</div>
+      <span class="step-label">Cargo</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step pending" id="step-3">
+      <div class="step-dot">3</div>
+      <span class="step-label">Schedule</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step pending" id="step-4">
+      <div class="step-dot">4</div>
+      <span class="step-label">Review</span>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert alert-error" id="alertBox"><i class="fas fa-exclamation-circle"></i> <span id="alertMsg"></span></div>
+  <div class="alert alert-success" id="successBox"><i class="fas fa-check-circle"></i> <span id="successMsg"></span></div>
+
+  <form id="shipmentForm">
+
+    <!-- ── Section 1: Route ── -->
+    <div class="form-card">
+      <div class="section-title"><i class="fas fa-route"></i> Origin & Destination</div>
+      <div class="form-grid two-col" style="gap:24px">
+
+        <!-- Origin -->
+        <div>
+          <div class="section-title" style="font-size:13px; color: var(--accent);"><i class="fas fa-map-pin"></i> Origin (Pickup)</div>
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <div class="form-group">
+              <label>Address</label>
+              <input class="form-control" name="origin_address" placeholder="Street address, landmark" required/>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+              <div class="form-group">
+                <label>City</label>
+                <input class="form-control" name="origin_city" placeholder="City" required/>
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <input class="form-control" name="origin_state" placeholder="State" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Pincode</label>
+              <input class="form-control" name="origin_pincode" placeholder="6-digit pincode" maxlength="6" pattern="[0-9]{6}" required/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destination -->
+        <div>
+          <div class="section-title" style="font-size:13px; color: var(--success);"><i class="fas fa-location-dot"></i> Destination (Delivery)</div>
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <div class="form-group">
+              <label>Address</label>
+              <input class="form-control" name="dest_address" placeholder="Street address, landmark" required/>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+              <div class="form-group">
+                <label>City</label>
+                <input class="form-control" name="dest_city" placeholder="City" required/>
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <input class="form-control" name="dest_state" placeholder="State" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Pincode</label>
+              <input class="form-control" name="dest_pincode" placeholder="6-digit pincode" maxlength="6" pattern="[0-9]{6}" required/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 2: Cargo ── -->
+    <div class="form-card">
+      <div class="section-title"><i class="fas fa-boxes-stacked"></i> Cargo Details</div>
+      <div class="form-grid three-col">
+        <div class="form-group">
+          <label>Cargo Type</label>
+          <select class="form-control" name="cargoType" required>
+            <option value="">Select type</option>
+            <option>General</option>
+            <option>Fragile</option>
+            <option>Perishable</option>
+            <option>Hazardous</option>
+            <option>Electronics</option>
+            <option>Automotive</option>
+            <option>Bulk</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Weight (KG)</label>
+          <input class="form-control" name="weight" type="number" min="1" placeholder="e.g. 500" required/>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input class="form-control" name="quantity" type="number" min="1" placeholder="e.g. 10" required/>
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <select class="form-control" name="unit">
+            <option>Boxes</option>
+            <option>Pallets</option>
+            <option>Bags</option>
+            <option>Drums</option>
+            <option>Tonnes</option>
+            <option>Pieces</option>
+            <option>Containers</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vehicle Type Required</label>
+          <select class="form-control" name="vehicleType">
+            <option>Any</option>
+            <option>Mini Truck</option>
+            <option>LCV</option>
+            <option>HCV</option>
+            <option>Trailer</option>
+            <option>Container</option>
+            <option>Tanker</option>
+            <option>Reefer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estimated Cost (₹)</label>
+          <input class="form-control" name="estimatedCost" type="number" min="0" placeholder="Optional"/>
+        </div>
+        <div class="form-group full">
+          <label>Cargo Description</label>
+          <textarea class="form-control" name="description" placeholder="Describe the goods, packaging, special requirements..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 3: Schedule & Priority ── -->
+    <div class="form-card">
+      <div class="section-title"><i class="fas fa-calendar-alt"></i> Schedule & Priority</div>
+      <div class="form-grid three-col">
+        <div class="form-group">
+          <label>Pickup Date</label>
+          <input class="form-control" name="pickupDate" type="date" required/>
+        </div>
+        <div class="form-group">
+          <label>Expected Delivery Date</label>
+          <input class="form-control" name="expectedDeliveryDate" type="date" required/>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <div class="priority-selector">
+            <button type="button" class="priority-btn selected" data-priority="Normal">🟢 Normal</button>
+            <button type="button" class="priority-btn" data-priority="High">🟡 High</button>
+            <button type="button" class="priority-btn" data-priority="Urgent">🔴 Urgent</button>
+          </div>
+          <input type="hidden" name="priority" value="Normal"/>
+        </div>
+        <div class="form-group full">
+          <label>Internal Notes</label>
+          <textarea class="form-control" name="notes" placeholder="Any internal notes or instructions for this shipment..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Submit ── -->
+    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px">
+      <button type="button" class="btn btn-ghost" onclick="history.back()">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <div class="spinner" id="spinner"></div>
+        <i class="fas fa-paper-plane" id="submitIcon"></i>
+        <span id="submitText">Create Shipment</span>
+      </button>
+    </div>
+
+  </form>
+</main>
+
+<script>
+  // ── Priority selector ──────────────────────
+  document.querySelectorAll('.priority-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.querySelector('[name="priority"]').value = btn.dataset.priority;
+    });
+  });
+
+  // ── Set min date to today ──────────────────
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelector('[name="pickupDate"]').min = today;
+  document.querySelector('[name="expectedDeliveryDate"]').min = today;
+
+  document.querySelector('[name="pickupDate"]').addEventListener('change', function() {
+    document.querySelector('[name="expectedDeliveryDate"]').min = this.value;
+  });
+
+  // ── Alert helpers ──────────────────────────
+  function showError(msg) {
+    const box = document.getElementById('alertBox');
+    document.getElementById('alertMsg').textContent = msg;
+    box.classList.add('show');
+    document.getElementById('successBox').classList.remove('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showSuccess(msg) {
+    const box = document.getElementById('successBox');
+    document.getElementById('successMsg').textContent = msg;
+    box.classList.add('show');
+    document.getElementById('alertBox').classList.remove('show');
+  }
+
+  // ── Form Submit ────────────────────────────
+  document.getElementById('shipmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const submitIcon = document.getElementById('submitIcon');
+    const submitText = document.getElementById('submitText');
+
+    // Button loading state
+    submitBtn.disabled = true;
+    spinner.style.display = 'block';
+    submitIcon.style.display = 'none';
+    submitText.textContent = 'Creating...';
+
+    try {
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+
+      // Build nested objects
+      const payload = {
+        origin: {
+          address: data.origin_address,
+          city: data.origin_city,
+          state: data.origin_state,
+          pincode: data.origin_pincode,
+        },
+        destination: {
+          address: data.dest_address,
+          city: data.dest_city,
+          state: data.dest_state,
+          pincode: data.dest_pincode,
+        },
+        pickupDate: data.pickupDate,
+        expectedDeliveryDate: data.expectedDeliveryDate,
+        cargoType: data.cargoType,
+        weight: Number(data.weight),
+        quantity: Number(data.quantity),
+        unit: data.unit,
+        vehicleType: data.vehicleType,
+        description: data.description,
+        estimatedCost: data.estimatedCost ? Number(data.estimatedCost) : 0,
+        priority: data.priority,
+        notes: data.notes,
+      };
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/shipments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create shipment.');
+      }
+
+      showSuccess(`Shipment created! ID: ${result.data.shipmentId}`);
+      e.target.reset();
+
+      // Redirect to shipment detail after 2s
+      setTimeout(() => {
+        window.location.href = `/shipments/list.html`;
+      }, 2000);
+
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      submitBtn.disabled = false;
+      spinner.style.display = 'none';
+      submitIcon.style.display = 'inline';
+      submitText.textContent = 'Create Shipment';
+    }
+  });
+
+  // ── Logout ────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login.html';
+  });
+</script>
+</body>
+</html>

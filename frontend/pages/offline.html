@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Offline — LogiFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --black:#08080a;--bg:#0d0d10;--s1:#131318;--s2:#1a1a20;
+  --border:#26262e;--border2:#32323c;
+  --orange:#FF5500;--cyan:#00D4FF;
+  --white:#EEEEF4;--text:#C8C8D4;--muted:#72728A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'IBM Plex Mono',monospace;
+  background:var(--bg);color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;position:relative;overflow:hidden;
+}
+/* Grid background */
+body::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:64px 64px;opacity:.22;pointer-events:none;
+}
+.card{
+  position:relative;z-index:1;
+  text-align:center;
+  max-width:480px;width:90%;
+  padding:3rem 2.5rem;
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:0 0 60px rgba(0,0,0,.5);
+}
+.card::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:80px;height:2px;background:var(--orange);border-radius:0 0 2px 2px;
+}
+.signal-icon{
+  width:72px;height:72px;margin:0 auto 2rem;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--s2);border:1px solid var(--border2);border-radius:50%;
+  font-size:2rem;
+  position:relative;
+}
+.signal-ring{
+  position:absolute;
+  border:2px solid rgba(255,85,0,0.3);
+  border-radius:50%;
+  animation:ring-out 2s ease-out infinite;
+}
+.signal-ring:nth-child(1){width:80px;height:80px;animation-delay:0s}
+.signal-ring:nth-child(2){width:100px;height:100px;animation-delay:.5s}
+.signal-ring:nth-child(3){width:120px;height:120px;animation-delay:1s}
+@keyframes ring-out{0%{opacity:.6;transform:scale(.8)}100%{opacity:0;transform:scale(1)}}
+
+.status{
+  font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pdot 1.5s infinite}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.2}}
+
+h1{
+  font-family:'Rajdhani',sans-serif;font-size:2.5rem;font-weight:700;
+  text-transform:uppercase;color:var(--white);line-height:1;margin-bottom:.875rem;
+}
+h1 span{color:var(--orange)}
+p{font-size:.85rem;color:var(--muted);line-height:1.7;margin-bottom:2rem}
+
+.actions{display:flex;flex-direction:column;gap:.75rem}
+.btn-p{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  background:var(--orange);color:#fff;
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.875rem 1.5rem;border:none;border-radius:3px;cursor:pointer;transition:all .2s;
+  text-decoration:none;
+}
+.btn-p:hover{background:#FF7733;box-shadow:0 4px 20px rgba(255,85,0,.3)}
+.btn-s{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  background:transparent;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.875rem 1.5rem;border:1px solid var(--border2);border-radius:3px;cursor:pointer;
+  transition:all .2s;text-decoration:none;
+}
+.btn-s:hover{color:var(--white);border-color:var(--border2)}
+
+.divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+
+.offline-feats{
+  display:flex;flex-direction:column;gap:.5rem;
+  text-align:left;
+}
+.of{
+  display:flex;align-items:center;gap:.75rem;
+  font-size:.75rem;color:var(--muted);padding:.5rem .75rem;
+  background:var(--s2);border-radius:4px;
+}
+.of-dot{width:4px;height:4px;border-radius:50%;background:var(--cyan);flex-shrink:0}
+
+.footer-note{
+  margin-top:2rem;font-size:.625rem;letter-spacing:.06em;color:var(--muted);
+}
+
+/* Connection status indicator */
+.conn-bar{
+  margin-top:1.5rem;background:var(--s2);border:1px solid var(--border);
+  border-radius:4px;padding:.875rem 1rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+.conn-label{font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.conn-val{font-size:.75rem;color:var(--orange);font-weight:500}
+.conn-val.online{color:#22c55e}
+
+/* Animated signal bars */
+.sig-bars{display:flex;align-items:flex-end;gap:2px;height:14px}
+.sb{width:4px;border-radius:1px;background:var(--border2)}
+.sb:nth-child(1){height:30%}
+.sb:nth-child(2){height:50%}
+.sb:nth-child(3){height:70%}
+.sb:nth-child(4){height:100%}
+.sb.active{background:var(--orange)}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="signal-icon">
+    <div class="signal-ring"></div>
+    <div class="signal-ring"></div>
+    <div class="signal-ring"></div>
+    📡
+  </div>
+
+  <div class="status">
+    <span class="status-dot"></span>
+    No internet connection
+  </div>
+
+  <h1>You're <span>Offline</span></h1>
+  <p>LogiFlow requires an internet connection to load live shipment data and real-time tracking. Your offline data is still saved and will sync automatically when you reconnect.</p>
+
+  <div class="offline-feats">
+    <div class="of"><span class="of-dot"></span>Previously loaded pages are still accessible</div>
+    <div class="of"><span class="of-dot"></span>Actions queued offline will sync automatically</div>
+    <div class="of"><span class="of-dot"></span>Driver app works for status updates offline</div>
+  </div>
+
+  <hr class="divider"/>
+
+  <div class="actions">
+    <button class="btn-p" onclick="window.location.reload()">🔄 Try Again</button>
+    <a href="/" class="btn-s">← Back to Home</a>
+  </div>
+
+  <div class="conn-bar">
+    <span class="conn-label">Connection status</span>
+    <div style="display:flex;align-items:center;gap:.625rem">
+      <div class="sig-bars" id="sigBars">
+        <div class="sb"></div>
+        <div class="sb"></div>
+        <div class="sb"></div>
+        <div class="sb"></div>
+      </div>
+      <span class="conn-val" id="connVal">Offline</span>
+    </div>
+  </div>
+
+  <div class="footer-note">LogiFlow · Will auto-reconnect when network is available</div>
+</div>
+
+<script>
+  // Poll for connection
+  let checking = false;
+
+  function updateStatus() {
+    const bars = document.querySelectorAll('.sb');
+    const val  = document.getElementById('connVal');
+
+    if (navigator.onLine) {
+      bars.forEach(b => b.classList.add('active'));
+      val.textContent  = 'Online';
+      val.className    = 'conn-val online';
+      // Redirect after brief delay
+      setTimeout(() => {
+        const prev = document.referrer;
+        window.location.href = prev && prev !== window.location.href ? prev : '/';
+      }, 1200);
+    } else {
+      bars.forEach((b,i) => b.classList.toggle('active', i===0));
+    }
+  }
+
+  window.addEventListener('online',  updateStatus);
+  window.addEventListener('offline', updateStatus);
+
+  // Check every 5 seconds
+  setInterval(async () => {
+    if (checking) return;
+    checking = true;
+    try {
+      await fetch('/manifest.json?_=' + Date.now(), { cache: 'no-store' });
+      updateStatus();
+    } catch {}
+    checking = false;
+  }, 5000);
+
+  updateStatus();
+</script>
+</body>
+</html>

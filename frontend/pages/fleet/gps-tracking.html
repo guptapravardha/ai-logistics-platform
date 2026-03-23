@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GPS Tracking | LogiTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <!-- Socket.io -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root{--bg:#0a0f1e;--glass:rgba(255,255,255,.05);--glass-border:rgba(255,255,255,.1);
+      --glass-hover:rgba(255,255,255,.08);--primary:#6c63ff;--primary-light:#8b85ff;
+      --accent:#00d4ff;--success:#00e676;--warning:#ffa726;--danger:#ff5252;
+      --text:#e8eaf6;--text-muted:#9ba3c7;--sidebar-width:260px;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+      height:100vh;display:flex;overflow:hidden;
+      background-image:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 80% 80%,rgba(0,212,255,.1) 0%,transparent 50%);}
+    .sidebar{width:var(--sidebar-width);height:100vh;background:rgba(255,255,255,.03);
+      border-right:1px solid var(--glass-border);padding:24px 0;
+      display:flex;flex-direction:column;flex-shrink:0;backdrop-filter:blur(20px);z-index:100;}
+    .sidebar-logo{padding:0 24px 28px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--glass-border);}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .logo-text{font-size:20px;font-weight:700;}
+    .sidebar-nav{padding:20px 12px;flex:1;overflow-y:auto;}
+    .nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;
+      color:var(--text-muted);padding:0 12px;margin:14px 0 6px;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;
+      color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:all .2s;}
+    .nav-item:hover{background:var(--glass-hover);color:var(--text);}
+    .nav-item.active{background:rgba(108,99,255,.2);color:var(--primary-light);}
+    .nav-item i{width:18px;text-align:center;font-size:14px;}
+
+    /* Content layout */
+    .content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+    /* Top bar */
+    .topbar{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--glass-border);background:rgba(255,255,255,.02);flex-shrink:0;}
+    .topbar h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--primary-light));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .live-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;
+      font-size:12px;font-weight:600;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:var(--success);}
+    .live-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+    /* Main area: map + panel */
+    .map-area{flex:1;display:flex;overflow:hidden;}
+
+    /* Driver panel */
+    .driver-panel{width:280px;background:rgba(255,255,255,.03);border-right:1px solid var(--glass-border);
+      display:flex;flex-direction:column;flex-shrink:0;}
+    .panel-header{padding:16px 18px;border-bottom:1px solid var(--glass-border);}
+    .panel-header h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
+    .panel-search{padding:10px 14px;border-bottom:1px solid var(--glass-border);}
+    .panel-search input{width:100%;padding:8px 12px;background:rgba(255,255,255,.04);
+      border:1px solid var(--glass-border);border-radius:8px;color:var(--text);
+      font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+    .panel-search input::placeholder{color:var(--text-muted);}
+    .driver-list{flex:1;overflow-y:auto;padding:8px;}
+
+    .driver-item{padding:12px 14px;border-radius:12px;cursor:pointer;transition:all .2s;
+      border:1px solid transparent;margin-bottom:4px;}
+    .driver-item:hover{background:var(--glass-hover);border-color:var(--glass-border);}
+    .driver-item.selected{background:rgba(108,99,255,.1);border-color:rgba(108,99,255,.3);}
+    .di-header{display:flex;align-items:center;gap:10px;}
+    .di-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));
+      display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+    .di-name{font-size:13px;font-weight:600;color:var(--text);}
+    .di-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+    .status-dot{width:8px;height:8px;border-radius:50%;margin-left:auto;flex-shrink:0;}
+    .dot-available{background:var(--success);}
+    .dot-busy{background:var(--warning);}
+    .dot-off{background:var(--danger);}
+    .di-location{font-size:11px;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:5px;}
+
+    /* Map */
+    #map{flex:1;z-index:1;}
+
+    /* Custom Leaflet map dark theme */
+    .leaflet-tile{filter:brightness(.7) saturate(.6) hue-rotate(200deg);}
+
+    /* Info panel on map */
+    .map-info-panel{position:absolute;top:16px;right:16px;z-index:500;
+      background:rgba(10,15,30,.92);backdrop-filter:blur(20px);
+      border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;min-width:200px;}
+    .mip-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;
+      color:var(--text-muted);margin-bottom:10px;}
+    .mip-row{display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:8px;font-size:13px;}
+    .mip-val{font-weight:600;}
+
+    /* Driver popup custom */
+    .driver-popup{min-width:180px;}
+    .dp-name{font-size:14px;font-weight:700;margin-bottom:4px;}
+    .dp-row{font-size:12px;color:#666;margin-top:3px;}
+
+    @media(max-width:900px){
+      .sidebar{display:none}
+      .driver-panel{width:220px}
+    }
+    @media(max-width:600px){
+      .driver-panel{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <span class="logo-text">LogiTrack</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a href="/pages/dashboards/admin.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+    <div class="nav-label">Shipments</div>
+    <a href="/pages/shipments/create-shipment.html" class="nav-item"><i class="fas fa-plus-circle"></i> Create Shipment</a>
+    <a href="/pages/shipments/assign-shipment.html" class="nav-item"><i class="fas fa-user-check"></i> Assign Driver</a>
+    <a href="/pages/shipments/track.html" class="nav-item"><i class="fas fa-map-marker-alt"></i> Track Shipment</a>
+    <div class="nav-label">Fleet</div>
+    <a href="/pages/fleet/drivers.html" class="nav-item"><i class="fas fa-user-tie"></i> Drivers</a>
+    <a href="/pages/fleet/vehicles.html" class="nav-item"><i class="fas fa-truck"></i> Vehicles</a>
+    <a href="/pages/fleet/gps-tracking.html" class="nav-item active"><i class="fas fa-satellite-dish"></i> GPS Tracking</a>
+    <div class="nav-label">Account</div>
+    <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </nav>
+</aside>
+
+<div class="content">
+  <!-- Topbar -->
+  <div class="topbar">
+    <h1>🛰️ Live GPS Tracking</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="driverCount" style="font-size:13px;color:var(--text-muted)">Loading...</span>
+      <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+    </div>
+  </div>
+
+  <!-- Map + Panel -->
+  <div class="map-area" style="position:relative;">
+
+    <!-- Driver list panel -->
+    <div class="driver-panel">
+      <div class="panel-header"><h3>🚛 Active Drivers</h3></div>
+      <div class="panel-search">
+        <input id="driverSearch" placeholder="Search driver..." oninput="filterPanel()"/>
+      </div>
+      <div class="driver-list" id="driverList">
+        <div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Info overlay -->
+    <div class="map-info-panel">
+      <div class="mip-title">Fleet Overview</div>
+      <div class="mip-row"><span>Total Drivers</span><span class="mip-val" id="infoTotal">—</span></div>
+      <div class="mip-row"><span style="color:var(--success)">● Available</span><span class="mip-val" id="infoAvail">—</span></div>
+      <div class="mip-row"><span style="color:var(--warning)">● On Duty</span><span class="mip-val" id="infoBusy">—</span></div>
+      <div class="mip-row"><span style="color:var(--danger)">● Off Duty</span><span class="mip-val" id="infoOff">—</span></div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--text-muted)">
+        Last updated: <span id="lastUpdate">—</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API   = 'http://localhost:5000';
+  const token = () => localStorage.getItem('token');
+
+  let map, driversData = [], markers = {};
+
+  // ── Init Map ──────────────────────────────
+  function initMap() {
+    map = L.map('map', { zoomControl: true }).setView([20.5937, 78.9629], 5); // India center
+
+    // Dark-style tile layer (free, no key)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(map);
+  }
+
+  // ── Custom truck marker icon ───────────────
+  function truckIcon(status) {
+    const color = { available: '#00e676', busy: '#ffa726', 'off-duty': '#ff5252' }[status] || '#6c63ff';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="16" fill="${color}" opacity="0.25"/>
+      <circle cx="18" cy="18" r="10" fill="${color}"/>
+      <text x="18" y="23" text-anchor="middle" font-size="13">🚛</text>
+    </svg>`;
+    return L.divIcon({
+      html: svg, className: '', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20],
+    });
+  }
+
+  // ── Load drivers ───────────────────────────
+  async function loadDrivers() {
+    try {
+      const res  = await fetch(`${API}/api/drivers?limit=100`, {
+        headers: { Authorization: `Bearer ${token()}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      driversData = data.data || [];
+      updateInfoPanel(driversData);
+      renderDriverPanel(driversData);
+      plotMarkers(driversData);
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-IN');
+    } catch (err) {
+      console.error('Load drivers error:', err);
+    }
+  }
+
+  // ── Update info panel ─────────────────────
+  function updateInfoPanel(drivers) {
+    document.getElementById('infoTotal').textContent = drivers.length;
+    document.getElementById('infoAvail').textContent = drivers.filter(d => d.availabilityStatus === 'available').length;
+    document.getElementById('infoBusy').textContent  = drivers.filter(d => d.availabilityStatus === 'busy').length;
+    document.getElementById('infoOff').textContent   = drivers.filter(d => d.availabilityStatus === 'off-duty').length;
+    document.getElementById('driverCount').textContent = `${drivers.length} drivers in fleet`;
+  }
+
+  // ── Render driver list panel ───────────────
+  function renderDriverPanel(drivers) {
+    const list = document.getElementById('driverList');
+    if (!drivers.length) {
+      list.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">No drivers found</div>`;
+      return;
+    }
+
+    list.innerHTML = drivers.map(d => {
+      const initials   = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+      const dotClass   = { available:'dot-available', busy:'dot-busy', 'off-duty':'dot-off' }[d.availabilityStatus] || 'dot-available';
+      const hasLocation = d.lastLocation?.lat && d.lastLocation?.lng;
+
+      return `<div class="driver-item" id="di-${d._id}" onclick="focusDriver('${d._id}')">
+        <div class="di-header">
+          <div class="di-avatar">${initials}</div>
+          <div>
+            <div class="di-name">${d.name}</div>
+            <div class="di-sub">${d.availabilityStatus}</div>
+          </div>
+          <span class="status-dot ${dotClass}"></span>
+        </div>
+        ${hasLocation
+          ? `<div class="di-location"><i class="fas fa-map-marker-alt" style="color:var(--primary-light)"></i> ${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}</div>`
+          : `<div class="di-location"><i class="fas fa-map-marker-slash"></i> No GPS data</div>`
+        }
+      </div>`;
+    }).join('');
+  }
+
+  // ── Plot markers on map ────────────────────
+  function plotMarkers(drivers) {
+    // Remove old markers
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    markers = {};
+
+    const bounds = [];
+
+    drivers.forEach(d => {
+      if (!d.lastLocation?.lat || !d.lastLocation?.lng) return;
+
+      const latlng = [d.lastLocation.lat, d.lastLocation.lng];
+      bounds.push(latlng);
+
+      const marker = L.marker(latlng, { icon: truckIcon(d.availabilityStatus) })
+        .bindPopup(`
+          <div class="driver-popup">
+            <div class="dp-name">🚛 ${d.name}</div>
+            <div class="dp-row">📞 ${d.phone}</div>
+            <div class="dp-row">🔑 ${d.licenseNumber}</div>
+            <div class="dp-row">Status: <strong>${d.availabilityStatus}</strong></div>
+            ${d.lastLocation.updatedAt ? `<div class="dp-row">Updated: ${new Date(d.lastLocation.updatedAt).toLocaleTimeString('en-IN')}</div>` : ''}
+          </div>
+        `)
+        .addTo(map);
+
+      markers[d._id] = marker;
+    });
+
+    // Fit bounds if we have markers
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+  }
+
+  // ── Focus on driver ────────────────────────
+  function focusDriver(id) {
+    document.querySelectorAll('.driver-item').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById(`di-${id}`);
+    if (el) el.classList.add('selected');
+
+    const marker = markers[id];
+    if (marker) {
+      map.setView(marker.getLatLng(), 13, { animate: true });
+      marker.openPopup();
+    } else {
+      alert('No GPS data for this driver yet.');
+    }
+  }
+
+  // ── Filter panel ───────────────────────────
+  function filterPanel() {
+    const q = document.getElementById('driverSearch').value.toLowerCase();
+    const filtered = driversData.filter(d => d.name.toLowerCase().includes(q));
+    renderDriverPanel(filtered);
+  }
+
+  // ── Socket.io live location updates ────────
+  function initSocket() {
+    const socket = io(window.location.origin, { auth: { token: token() } });
+
+    socket.on('connect', () => console.log('🔌 GPS socket connected'));
+
+    socket.on('driver_location_update', (data) => {
+      console.log('📍 Location update:', data);
+
+      // Update driver in local array
+      const driver = driversData.find(d => String(d._id) === String(data.driverId));
+      if (driver) {
+        driver.lastLocation = { lat: data.lat, lng: data.lng, updatedAt: data.updatedAt };
+      }
+
+      // Move or create marker
+      const latlng = [data.lat, data.lng];
+      if (markers[data.driverId]) {
+        markers[data.driverId].setLatLng(latlng);
+      } else {
+        const d = driversData.find(d => String(d._id) === String(data.driverId));
+        if (d) {
+          const marker = L.marker(latlng, { icon: truckIcon(d.availabilityStatus) })
+            .bindPopup(`<div class="driver-popup"><div class="dp-name">🚛 ${data.name}</div><div class="dp-row">LIVE update</div></div>`)
+            .addTo(map);
+          markers[data.driverId] = marker;
+        }
+      }
+
+      // Update panel
+      renderDriverPanel(driversData);
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-IN');
+    });
+  }
+
+  // ── Simulate locations (dev only) ──────────
+  // Uncomment below to add fake GPS data for testing:
+  // function simulateLocations() {
+  //   const indianCities = [
+  //     [19.076, 72.877], [28.704, 77.102], [12.972, 77.594],
+  //     [22.572, 88.363], [17.385, 78.487], [23.022, 72.572],
+  //   ];
+  //   driversData.forEach((d, i) => {
+  //     d.lastLocation = { lat: indianCities[i%indianCities.length][0], lng: indianCities[i%indianCities.length][1] };
+  //   });
+  //   plotMarkers(driversData);
+  //   renderDriverPanel(driversData);
+  // }
+
+  // ── Boot ───────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    loadDrivers();
+    initSocket();
+    // Refresh every 30s as fallback
+    setInterval(loadDrivers, 30000);
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = '/pages/login.html';
+  });
+</script>
+</body>
+</html>

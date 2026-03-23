@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Shipment | LogiTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Socket.io client -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --glass: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.1);
+      --glass-hover: rgba(255,255,255,0.08);
+      --primary: #6c63ff;
+      --primary-light: #8b85ff;
+      --accent: #00d4ff;
+      --success: #00e676;
+      --warning: #ffa726;
+      --danger: #ff5252;
+      --text: #e8eaf6;
+      --text-muted: #9ba3c7;
+      --sidebar-width: 260px;
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; display: flex;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,212,255,0.1) 0%, transparent 50%);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-width); min-height: 100vh;
+      background: rgba(255,255,255,0.03); border-right: 1px solid var(--glass-border);
+      padding: 24px 0; position: fixed; top: 0; left: 0;
+      display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(20px);
+    }
+    .sidebar-logo { padding: 0 24px 32px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--glass-border); }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { font-size: 20px; font-weight: 700; }
+    .sidebar-nav { padding: 24px 12px; flex: 1; }
+    .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); padding: 0 12px; margin: 16px 0 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+    .nav-item:hover { background: var(--glass-hover); color: var(--text); }
+    .nav-item.active { background: rgba(108,99,255,0.2); color: var(--primary-light); }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-width); flex: 1; padding: 32px; overflow-x: hidden; }
+
+    /* ── Search bar ── */
+    .search-bar {
+      display: flex; gap: 12px; align-items: center; margin-bottom: 32px; flex-wrap: wrap;
+    }
+    .search-input-wrap { position: relative; flex: 1; max-width: 480px; }
+    .search-input-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+    .search-input {
+      width: 100%; padding: 12px 14px 12px 40px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 12px; color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+      outline: none; transition: all 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary); background: rgba(108,99,255,0.06); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,0.35); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: var(--glass); color: var(--text-muted); border: 1px solid var(--glass-border); }
+    .btn-ghost:hover { background: var(--glass-hover); color: var(--text); }
+
+    /* ── Live indicator ── */
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.25); color: var(--success);
+    }
+    .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+
+    .offline-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      background: rgba(255,82,82,0.1); border: 1px solid rgba(255,82,82,0.25); color: var(--danger);
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
+    }
+    .page-header h1 {
+      font-size: 24px; font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--primary-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius); backdrop-filter: blur(20px); padding: 24px;
+      margin-bottom: 20px;
+    }
+    .section-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .section-title i { color: var(--primary-light); }
+
+    /* ── Status Badge ── */
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-pending   { background: rgba(255,167,38,0.15); color: var(--warning);      border: 1px solid rgba(255,167,38,0.3); }
+    .badge-assigned  { background: rgba(108,99,255,0.15); color: var(--primary-light); border: 1px solid rgba(108,99,255,0.3); }
+    .badge-transit   { background: rgba(0,212,255,0.12);  color: var(--accent);        border: 1px solid rgba(0,212,255,0.3); }
+    .badge-atgate    { background: rgba(255,167,38,0.15); color: var(--warning);        border: 1px solid rgba(255,167,38,0.3); }
+    .badge-delivered { background: rgba(0,230,118,0.12);  color: var(--success);       border: 1px solid rgba(0,230,118,0.3); }
+    .badge-cancelled { background: rgba(255,82,82,0.12);  color: var(--danger);        border: 1px solid rgba(255,82,82,0.3); }
+
+    /* ── Status Timeline ── */
+    .timeline-steps {
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; padding: 0 8px; margin-bottom: 8px;
+    }
+    .timeline-steps::before {
+      content: ''; position: absolute; top: 20px; left: 40px; right: 40px;
+      height: 2px; background: var(--glass-border); z-index: 0;
+    }
+    .timeline-progress {
+      position: absolute; top: 20px; left: 40px;
+      height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent));
+      z-index: 1; transition: width 0.6s ease;
+    }
+
+    .t-step { display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2; flex: 1; }
+    .t-dot {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; transition: all 0.4s;
+      border: 2px solid var(--glass-border); background: var(--bg);
+    }
+    .t-step.done   .t-dot { background: var(--success); border-color: var(--success); }
+    .t-step.active .t-dot { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 0 6px rgba(108,99,255,0.2); animation: ring 1.5s ease infinite; }
+    .t-step.future .t-dot { background: var(--bg); border-color: var(--glass-border); opacity: 0.5; }
+    @keyframes ring { 0%,100%{box-shadow:0 0 0 4px rgba(108,99,255,0.2)} 50%{box-shadow:0 0 0 10px rgba(108,99,255,0.08)} }
+
+    .t-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+    .t-step.done   .t-label { color: var(--success); }
+    .t-step.active .t-label { color: var(--primary-light); }
+    .t-step.future .t-label { color: var(--text-muted); }
+
+    /* ── Route Map Visual ── */
+    .route-map {
+      background: rgba(255,255,255,0.02); border-radius: 14px;
+      padding: 24px; position: relative; overflow: hidden;
+    }
+    .route-map::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(108,99,255,0.05) 0%, transparent 70%);
+    }
+    .route-endpoints {
+      display: flex; align-items: center; gap: 16px;
+      position: relative; z-index: 1;
+    }
+    .route-end { flex: 1; }
+    .route-end .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .route-end .city { font-size: 18px; font-weight: 700; color: var(--text); }
+    .route-end .addr { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .route-end .pin  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .route-line {
+      flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative;
+    }
+    .route-line::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%;
+      height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent));
+      transform: translateY(-50%);
+    }
+    .route-truck {
+      background: var(--bg); border: 2px solid var(--primary);
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; z-index: 1;
+      box-shadow: 0 0 20px rgba(108,99,255,0.4);
+    }
+
+    .route-meta { display: flex; gap: 32px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--glass-border); flex-wrap: wrap; }
+    .route-meta-item label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+    .route-meta-item p { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 4px; }
+
+    /* ── Driver Card ── */
+    .driver-card-inner {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .driver-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700; flex-shrink: 0;
+    }
+    .driver-info h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .driver-meta { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+    .driver-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+    .driver-meta-item i { color: var(--primary-light); font-size: 12px; }
+
+    .no-driver { text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; }
+    .no-driver i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+    /* ── Document List ── */
+    .doc-list { display: flex; flex-direction: column; gap: 10px; }
+    .doc-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border); border-radius: 12px;
+      transition: background 0.2s;
+    }
+    .doc-item:hover { background: var(--glass-hover); }
+    .doc-left { display: flex; align-items: center; gap: 12px; }
+    .doc-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .doc-icon.lr      { background: rgba(108,99,255,0.15); color: var(--primary-light); }
+    .doc-icon.invoice { background: rgba(0,212,255,0.12);  color: var(--accent); }
+    .doc-icon.pod     { background: rgba(0,230,118,0.12);  color: var(--success); }
+    .doc-icon.other   { background: rgba(255,167,38,0.12); color: var(--warning); }
+    .doc-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .doc-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .doc-download { color: var(--primary-light); font-size: 14px; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s; }
+    .doc-download:hover { background: rgba(108,99,255,0.15); }
+    .no-docs { text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; }
+    .no-docs i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+    /* ── Status History Log ── */
+    .history-log { display: flex; flex-direction: column; gap: 0; }
+    .history-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+    .history-item:not(:last-child)::before {
+      content: ''; position: absolute;
+      left: 17px; top: 36px; bottom: 0;
+      width: 2px; background: var(--glass-border);
+    }
+    .h-dot {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; z-index: 1;
+    }
+    .h-dot.pending   { background: rgba(255,167,38,0.2); color: var(--warning); border: 1px solid rgba(255,167,38,0.4); }
+    .h-dot.assigned  { background: rgba(108,99,255,0.2); color: var(--primary-light); border: 1px solid rgba(108,99,255,0.4); }
+    .h-dot.transit   { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+    .h-dot.atgate    { background: rgba(255,167,38,0.2); color: var(--warning); border: 1px solid rgba(255,167,38,0.4); }
+    .h-dot.delivered { background: rgba(0,230,118,0.15); color: var(--success); border: 1px solid rgba(0,230,118,0.3); }
+    .h-dot.cancelled { background: rgba(255,82,82,0.15); color: var(--danger); border: 1px solid rgba(255,82,82,0.3); }
+
+    .h-content { flex: 1; padding-top: 6px; }
+    .h-status { font-size: 14px; font-weight: 600; color: var(--text); }
+    .h-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .h-note { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-style: italic; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 2px solid var(--glass-border); }
+
+    /* ── Toast notification ── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      background: rgba(20,26,46,0.96); border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px); border-radius: 14px;
+      padding: 16px 20px; min-width: 300px; max-width: 400px;
+      display: flex; align-items: flex-start; gap: 12px;
+      transform: translateY(100px); opacity: 0; transition: all 0.35s ease;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .toast-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .toast-msg { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+    .toast-close { margin-left: auto; cursor: pointer; color: var(--text-muted); font-size: 14px; flex-shrink: 0; }
+
+    /* ── Loading ── */
+    .skeleton { background: linear-gradient(90deg, var(--glass) 25%, var(--glass-hover) 50%, var(--glass) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    .loading-state { text-align: center; padding: 80px 20px; }
+    .loading-state .loading-dots span { display: inline-block; width: 10px; height: 10px; background: var(--primary-light); border-radius: 50%; margin: 0 4px; animation: bounce 1.2s infinite; }
+    .loading-state .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-state .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+
+    .empty-track { text-align: center; padding: 80px 20px; }
+    .empty-track i { font-size: 56px; color: var(--primary-light); opacity: 0.25; margin-bottom: 20px; display: block; }
+    .empty-track h2 { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .empty-track p { font-size: 14px; color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; padding: 20px 16px; }
+      .route-endpoints { flex-direction: column; }
+      .route-line { width: 100%; height: 60px; }
+      .route-line::before { top: 50%; left: 0; right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <span class="logo-text">LogiTrack</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a href="/frontend/dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+    <div class="nav-label">Shipments</div>
+    <a href="/frontend/shipments/create-shipment.html" class="nav-item"><i class="fas fa-plus-circle"></i> Create Shipment</a>
+    <a href="/frontend/shipments/list.html" class="nav-item"><i class="fas fa-box"></i> All Shipments</a>
+    <a href="/frontend/shipments/assign-shipment.html" class="nav-item"><i class="fas fa-user-check"></i> Assign Driver</a>
+    <a href="/frontend/shipments/track.html" class="nav-item active"><i class="fas fa-map-marker-alt"></i> Track Shipment</a>
+    <div class="nav-label">Fleet</div>
+    <a href="/frontend/drivers.html" class="nav-item"><i class="fas fa-user-tie"></i> Drivers</a>
+    <a href="/frontend/vehicles.html" class="nav-item"><i class="fas fa-truck"></i> Vehicles</a>
+    <div class="nav-label">Gate</div>
+    <a href="/frontend/gate.html" class="nav-item"><i class="fas fa-door-open"></i> Gate Entry</a>
+    <div class="nav-label">Account</div>
+    <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Search -->
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <i class="fas fa-search"></i>
+      <input class="search-input" id="trackInput" placeholder="Enter Shipment ID  (e.g. SHP-LX4F2-A1B2)" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary" onclick="trackShipment()"><i class="fas fa-location-arrow"></i> Track</button>
+    <button class="btn btn-ghost" onclick="clearTracking()"><i class="fas fa-times"></i> Clear</button>
+    <span id="liveIndicator" style="display:none"></span>
+  </div>
+
+  <!-- Content area -->
+  <div id="trackingContent">
+    <div class="empty-track">
+      <i class="fas fa-satellite-dish"></i>
+      <h2>Track a Shipment</h2>
+      <p>Enter a Shipment ID above to see its real-time status,<br/>route, driver info, documents, and full history.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon">🔔</div>
+  <div>
+    <div class="toast-title" id="toastTitle">Update</div>
+    <div class="toast-msg" id="toastMsg"></div>
+  </div>
+  <i class="fas fa-times toast-close" onclick="hideToast()"></i>
+</div>
+
+<script>
+  const API = '';
+  const token = () => localStorage.getItem('token');
+  let socket = null;
+  let currentShipmentDbId = null;
+  let toastTimer = null;
+
+  // ── On load: check URL param ──────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+      document.getElementById('trackInput').value = id;
+      trackShipment();
+    }
+
+    // Connect socket
+    initSocket();
+  });
+
+  // ── Socket.io ─────────────────────────────
+  function initSocket() {
+    socket = io(window.location.origin, { auth: { token: token() } });
+
+    socket.on('connect', () => {
+      console.log('🔌 Socket connected:', socket.id);
+      if (currentShipmentDbId) joinRoom(currentShipmentDbId);
+    });
+
+    socket.on('disconnect', () => {
+      setLiveIndicator(false);
+    });
+
+    socket.on('status_updated', (data) => {
+      console.log('📡 Live update:', data);
+
+      // Update status badge + timeline without reload
+      updateStatusLive(data.newStatus);
+
+      // Append to history log
+      prependHistoryEntry(data);
+
+      // Toast notification
+      showToast(
+        statusEmoji(data.newStatus) + ' Status Updated',
+        `"${data.newStatus}" — ${data.note || 'No note'} · by ${data.updatedBy?.name}`
+      );
+    });
+  }
+
+  function joinRoom(shipmentId) {
+    if (socket) {
+      socket.emit('join_shipment', shipmentId);
+      setLiveIndicator(true);
+    }
+  }
+
+  function leaveRoom(shipmentId) {
+    if (socket && shipmentId) {
+      socket.emit('leave_shipment', shipmentId);
+      setLiveIndicator(false);
+    }
+  }
+
+  function setLiveIndicator(live) {
+    const el = document.getElementById('liveIndicator');
+    el.style.display = 'inline-flex';
+    el.className = live ? 'live-badge' : 'offline-badge';
+    el.innerHTML = live
+      ? `<span class="live-dot"></span> LIVE`
+      : `<i class="fas fa-wifi-slash" style="font-size:11px"></i> Offline`;
+  }
+
+  // ── Track shipment ─────────────────────────
+  async function trackShipment() {
+    const id = document.getElementById('trackInput').value.trim();
+    if (!id) return;
+
+    // Leave previous room
+    if (currentShipmentDbId) leaveRoom(currentShipmentDbId);
+
+    document.getElementById('trackingContent').innerHTML = `
+      <div class="loading-state">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <p style="margin-top:16px;color:var(--text-muted)">Fetching shipment data...</p>
+      </div>`;
+
+    try {
+      const res = await fetch(`${API}/api/shipments/${id}/track`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      renderTracking(data.data);
+      currentShipmentDbId = data.data._id;
+      joinRoom(data.data._id);
+
+      // Update URL
+      window.history.replaceState({}, '', `?id=${id}`);
+
+    } catch (err) {
+      document.getElementById('trackingContent').innerHTML = `
+        <div class="empty-track">
+          <i class="fas fa-exclamation-triangle" style="color:var(--danger);opacity:0.5"></i>
+          <h2>Shipment Not Found</h2>
+          <p>${err.message}</p>
+        </div>`;
+      setLiveIndicator(false);
+    }
+  }
+
+  // ── Enter key support ──────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('trackInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') trackShipment();
+    });
+  });
+
+  // ── Clear ──────────────────────────────────
+  function clearTracking() {
+    if (currentShipmentDbId) leaveRoom(currentShipmentDbId);
+    currentShipmentDbId = null;
+    document.getElementById('trackInput').value = '';
+    document.getElementById('liveIndicator').style.display = 'none';
+    window.history.replaceState({}, '', window.location.pathname);
+    document.getElementById('trackingContent').innerHTML = `
+      <div class="empty-track">
+        <i class="fas fa-satellite-dish"></i>
+        <h2>Track a Shipment</h2>
+        <p>Enter a Shipment ID above to see its real-time status,<br/>route, driver info, documents, and full history.</p>
+      </div>`;
+  }
+
+  // ── Render full tracking page ──────────────
+  function renderTracking(s) {
+    const statusOrder = ['Pending','Assigned','In Transit','At Gate','Delivered'];
+    const currentIdx  = statusOrder.indexOf(s.status);
+
+    document.getElementById('trackingContent').innerHTML = `
+
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h1>${s.shipmentId}</h1>
+          <p>Created ${formatDate(s.createdAt)} · by ${s.createdBy?.name || 'N/A'} (${s.createdBy?.role || ''})</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${priorityBadge(s.priority)}
+          ${statusBadge(s.status)}
+        </div>
+      </div>
+
+      <!-- 1. Status Timeline -->
+      <div class="card" id="timelineCard">
+        <div class="section-title"><i class="fas fa-stream"></i> Shipment Progress</div>
+        <div class="timeline-steps" id="timelineSteps">
+          ${statusOrder.map((st, i) => `
+            <div class="t-step ${i < currentIdx ? 'done' : i === currentIdx ? 'active' : 'future'}" id="tstep-${st.replace(' ','_')}">
+              <div class="t-dot">${i < currentIdx ? '✓' : statusEmoji(st)}</div>
+              <div class="t-label">${st}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="timeline-progress" id="timelineBar" style="width:${timelineWidth(s.status)}"></div>
+        <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:28px">
+          Last updated: ${formatDate(s.updatedAt)}
+        </p>
+      </div>
+
+      <!-- 2. Route Map -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-route"></i> Route</div>
+        <div class="route-map">
+          <div class="route-endpoints">
+            <div class="route-end">
+              <div class="tag"><span style="color:var(--accent)">●</span> ORIGIN</div>
+              <div class="city">${s.origin.city}, ${s.origin.state}</div>
+              <div class="addr">${s.origin.address}</div>
+              <div class="pin">📮 ${s.origin.pincode}</div>
+            </div>
+            <div class="route-line">
+              <div class="route-truck">🚛</div>
+            </div>
+            <div class="route-end" style="text-align:right">
+              <div class="tag" style="justify-content:flex-end"><span style="color:var(--success)">●</span> DESTINATION</div>
+              <div class="city">${s.destination.city}, ${s.destination.state}</div>
+              <div class="addr">${s.destination.address}</div>
+              <div class="pin">📮 ${s.destination.pincode}</div>
+            </div>
+          </div>
+          <div class="route-meta">
+            <div class="route-meta-item"><label>Cargo Type</label><p>${s.cargoType}</p></div>
+            <div class="route-meta-item"><label>Weight</label><p>${s.weight} kg</p></div>
+            <div class="route-meta-item"><label>Quantity</label><p>${s.quantity} ${s.unit}</p></div>
+            <div class="route-meta-item"><label>Vehicle</label><p>${s.vehicleType || 'Any'}</p></div>
+            <div class="route-meta-item"><label>Pickup Date</label><p>${formatDate(s.pickupDate, true)}</p></div>
+            <div class="route-meta-item"><label>Expected Delivery</label><p>${formatDate(s.expectedDeliveryDate, true)}</p></div>
+            ${s.estimatedCost ? `<div class="route-meta-item"><label>Est. Cost</label><p>₹${s.estimatedCost.toLocaleString('en-IN')}</p></div>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Driver Info Card -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-user-tie"></i> Assigned Driver</div>
+        ${s.assignedDriver ? `
+          <div class="driver-card-inner">
+            <div class="driver-avatar">${initials(s.assignedDriver.name)}</div>
+            <div class="driver-info">
+              <h3>${s.assignedDriver.name}</h3>
+              <div class="driver-meta">
+                <div class="driver-meta-item"><i class="fas fa-phone"></i> ${s.assignedDriver.phone || 'N/A'}</div>
+                <div class="driver-meta-item"><i class="fas fa-envelope"></i> ${s.assignedDriver.email}</div>
+                ${s.assignedDriver.vehicleType ? `<div class="driver-meta-item"><i class="fas fa-truck"></i> ${s.assignedDriver.vehicleType}</div>` : ''}
+                ${s.assignedDriver.licenseNumber ? `<div class="driver-meta-item"><i class="fas fa-id-card"></i> ${s.assignedDriver.licenseNumber}</div>` : ''}
+              </div>
+            </div>
+            ${s.assignedVehicle ? `
+              <div style="margin-left:auto;text-align:right">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted)">Vehicle</div>
+                <div style="font-size:15px;font-weight:700;margin-top:4px">${s.assignedVehicle.registrationNumber || 'N/A'}</div>
+                <div style="font-size:12px;color:var(--text-muted)">${s.assignedVehicle.vehicleType || ''} ${s.assignedVehicle.make || ''} ${s.assignedVehicle.model || ''}</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : `<div class="no-driver"><i class="fas fa-user-slash"></i>No driver assigned yet</div>`}
+      </div>
+
+      <!-- 4. Documents -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-file-alt"></i> Documents</div>
+        ${s.documents?.length ? `
+          <div class="doc-list">
+            ${s.documents.map(doc => `
+              <div class="doc-item">
+                <div class="doc-left">
+                  <div class="doc-icon ${doc.type?.toLowerCase().replace('-','').replace(' ','') || 'other'}">
+                    ${docIcon(doc.type)}
+                  </div>
+                  <div>
+                    <div class="doc-name">${doc.type || 'Document'}</div>
+                    <div class="doc-date">Uploaded ${formatDate(doc.uploadedAt)}</div>
+                  </div>
+                </div>
+                ${doc.url ? `<a href="${doc.url}" target="_blank" class="doc-download"><i class="fas fa-download"></i></a>` : '<span style="font-size:12px;color:var(--text-muted)">No file</span>'}
+              </div>
+            `).join('')}
+          </div>
+        ` : `<div class="no-docs"><i class="fas fa-folder-open"></i>No documents uploaded yet</div>`}
+      </div>
+
+      <!-- 5. Status History Log -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-history"></i> Status History</div>
+        <div class="history-log" id="historyLog">
+          ${renderHistoryItems(s.statusHistory)}
+        </div>
+      </div>
+
+    `;
+  }
+
+  // ── Render history items ───────────────────
+  function renderHistoryItems(history) {
+    if (!history?.length) return '<p style="color:var(--text-muted);font-size:14px">No history yet.</p>';
+    return [...history].reverse().map(h => `
+      <div class="history-item">
+        <div class="h-dot ${h.status.toLowerCase().replace(' ','').replace('at','at')}">${statusEmoji(h.status)}</div>
+        <div class="h-content">
+          <div class="h-status">${h.status}</div>
+          <div class="h-meta">
+            <span><i class="fas fa-clock" style="margin-right:4px"></i>${formatDate(h.timestamp)}</span>
+            ${h.updatedBy?.name ? `<span><i class="fas fa-user" style="margin-right:4px"></i>${h.updatedBy.name} (${h.updatedBy.role})</span>` : ''}
+          </div>
+          ${h.note ? `<div class="h-note">${h.note}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Live update helpers ────────────────────
+  function updateStatusLive(newStatus) {
+    // Update badge in header
+    document.querySelectorAll('.badge').forEach(b => {
+      if (['badge-pending','badge-assigned','badge-transit','badge-atgate','badge-delivered','badge-cancelled'].some(c => b.classList.contains(c))) {
+        b.className = `badge ${statusBadgeClass(newStatus)}`;
+        b.innerHTML = newStatus;
+      }
+    });
+
+    // Update timeline dots
+    const statusOrder = ['Pending','Assigned','In Transit','At Gate','Delivered'];
+    const currentIdx  = statusOrder.indexOf(newStatus);
+    statusOrder.forEach((st, i) => {
+      const el = document.getElementById(`tstep-${st.replace(' ','_')}`);
+      if (el) {
+        el.className = `t-step ${i < currentIdx ? 'done' : i === currentIdx ? 'active' : 'future'}`;
+        el.querySelector('.t-dot').textContent = i < currentIdx ? '✓' : statusEmoji(st);
+      }
+    });
+
+    // Update progress bar
+    const bar = document.getElementById('timelineBar');
+    if (bar) bar.style.width = timelineWidth(newStatus);
+  }
+
+  function prependHistoryEntry(data) {
+    const log = document.getElementById('historyLog');
+    if (!log) return;
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.style.animation = 'fadeIn 0.4s ease';
+    div.innerHTML = `
+      <div class="h-dot ${data.newStatus.toLowerCase().replace(/\s/g,'')}">${statusEmoji(data.newStatus)}</div>
+      <div class="h-content">
+        <div class="h-status">${data.newStatus} <span style="font-size:11px;color:var(--success);margin-left:8px">● LIVE</span></div>
+        <div class="h-meta">
+          <span><i class="fas fa-clock" style="margin-right:4px"></i>Just now</span>
+          <span><i class="fas fa-user" style="margin-right:4px"></i>${data.updatedBy?.name} (${data.updatedBy?.role})</span>
+        </div>
+        ${data.note ? `<div class="h-note">${data.note}</div>` : ''}
+      </div>`;
+    log.prepend(div);
+  }
+
+  // ── Toast ──────────────────────────────────
+  function showToast(title, msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast() { document.getElementById('toast').classList.remove('show'); }
+
+  // ── Helpers ────────────────────────────────
+  function statusEmoji(s) {
+    const map = { 'Pending':'⏳','Assigned':'📋','In Transit':'🚛','At Gate':'🚧','Delivered':'✅','Cancelled':'❌' };
+    return map[s] || '●';
+  }
+
+  function statusBadgeClass(s) {
+    const map = { 'Pending':'badge-pending','Assigned':'badge-assigned','In Transit':'badge-transit','At Gate':'badge-atgate','Delivered':'badge-delivered','Cancelled':'badge-cancelled' };
+    return map[s] || 'badge-pending';
+  }
+
+  function statusBadge(s) {
+    return `<span class="badge ${statusBadgeClass(s)}">${statusEmoji(s)} ${s}</span>`;
+  }
+
+  function priorityBadge(p) {
+    const map = { 'Normal':'rgba(0,230,118,0.12)','High':'rgba(255,167,38,0.12)','Urgent':'rgba(255,82,82,0.12)' };
+    const col = { 'Normal':'var(--success)','High':'var(--warning)','Urgent':'var(--danger)' };
+    return `<span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:${map[p]||'var(--glass)'};color:${col[p]||'var(--text-muted)'};">${p || 'Normal'} Priority</span>`;
+  }
+
+  function timelineWidth(status) {
+    const map = { 'Pending':'0%','Assigned':'25%','In Transit':'50%','At Gate':'75%','Delivered':'100%','Cancelled':'0%' };
+    return map[status] || '0%';
+  }
+
+  function docIcon(type) {
+    const map = { 'LR':'📄','Invoice':'🧾','POD':'✅','E-Way Bill':'📋','Other':'📎' };
+    return map[type] || '📎';
+  }
+
+  function initials(name) {
+    return name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+  }
+
+  function formatDate(d, dateOnly = false) {
+    if (!d) return 'N/A';
+    const dt = new Date(d);
+    if (dateOnly) return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    return dt.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  // ── Logout ─────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    if (socket) socket.disconnect();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/frontend/login.html';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Create Account — LogiFlow</title>
+<link rel="icon" href="../icons/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script>(function(){var t=localStorage.getItem('lf-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
+<style>
+:root{
+  --black:#08080a;--bg:#0d0d10;--s1:#131318;--s2:#1a1a20;
+  --border:#26262e;--border2:#32323c;
+  --orange:#FF5500;--orange-l:#FF7733;--orange-d:#CC4400;
+  --cyan:#00D4FF;--cyan-d:#009FBF;
+  --white:#EEEEF4;--text:#C8C8D4;--muted:#72728A;--subtle:#3A3A48;
+  --fD:'Rajdhani',sans-serif;--fM:'IBM Plex Mono',monospace;--fB:'Sora',sans-serif;
+  --r1:3px;--r2:6px;--r3:10px;
+}
+html[data-theme="light"]{
+  --bg:#f5f5f7;--s1:#ffffff;--s2:#eff0f2;
+  --border:#dddde6;--border2:#c8c8d4;
+  --white:#111118;--text:#2a2a38;--muted:#72728A;--subtle:#b0b0c2;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;min-height:100%}
+body{
+  font-family:var(--fB);background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+  padding:2rem 1rem;position:relative;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:64px 64px;opacity:.22;pointer-events:none;
+}
+
+.auth-wrap{position:relative;z-index:1;width:100%;max-width:500px;padding-bottom:2rem}
+
+.auth-brand{
+  display:flex;align-items:center;gap:.625rem;
+  text-decoration:none;margin-bottom:2rem;justify-content:center;
+}
+.auth-mark{
+  width:32px;height:32px;background:var(--orange);
+  clip-path:polygon(0 0,100% 0,100% 68%,68% 100%,0 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fD);font-weight:700;font-size:.9rem;color:#fff;
+}
+.auth-name{font-family:var(--fD);font-weight:700;font-size:1.3rem;letter-spacing:.14em;color:var(--white);text-transform:uppercase}
+.auth-name em{font-style:normal;color:var(--orange)}
+
+/* Progress bar */
+.progress-bar{
+  display:flex;gap:.375rem;margin-bottom:1.5rem;
+}
+.pb{flex:1;height:3px;background:var(--border);border-radius:2px;transition:background .35s}
+.pb.on{background:var(--orange)}
+.pb.done{background:var(--cyan)}
+.step-labels{
+  display:flex;justify-content:space-between;
+  font-family:var(--fM);font-size:.575rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:2rem;
+}
+.step-labels span.on{color:var(--orange)}
+.step-labels span.done{color:var(--cyan)}
+
+.card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:2.25rem 2.5rem;
+  box-shadow:0 0 60px rgba(0,0,0,.3);
+}
+html[data-theme="light"] .card{box-shadow:0 4px 32px rgba(0,0,0,.08)}
+.card-tag{
+  font-family:var(--fM);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:.875rem;display:block;
+}
+.card-title{
+  font-family:var(--fD);font-weight:700;font-size:1.875rem;
+  text-transform:uppercase;color:var(--white);line-height:1;margin-bottom:.5rem;
+}
+.card-sub{font-size:.875rem;color:var(--muted);margin-bottom:2rem}
+.card-sub a{color:var(--orange);text-decoration:none}
+
+/* Step panels */
+.step-panel{display:none}
+.step-panel.active{display:block;animation:stp-in .25s ease}
+@keyframes stp-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Role selector */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:2rem}
+.role-card{
+  padding:1.125rem 1rem;
+  background:var(--s2);border:1.5px solid var(--border);
+  border-radius:var(--r3);cursor:pointer;text-align:center;
+  transition:all .2s;
+}
+.role-card:hover{border-color:var(--orange);background:rgba(255,85,0,.04)}
+.role-card.selected{border-color:var(--orange);background:rgba(255,85,0,.08)}
+.role-card.selected .role-card-name{color:var(--orange)}
+.role-ico{font-size:1.5rem;margin-bottom:.375rem;display:block}
+.role-card-name{
+  font-family:var(--fD);font-weight:700;font-size:.95rem;text-transform:uppercase;
+  color:var(--white);display:block;margin-bottom:.2rem;
+}
+.role-card-desc{font-size:.725rem;color:var(--muted);line-height:1.4}
+
+/* Form */
+.field{margin-bottom:1.125rem}
+.field-label{
+  display:block;font-family:var(--fM);font-size:.625rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.45rem;
+}
+.field-input,.field-select{
+  width:100%;padding:.8125rem 1rem;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:var(--r1);color:var(--white);
+  font-family:var(--fB);font-size:.9375rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.field-input:focus,.field-select:focus{
+  border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,85,0,.1);
+}
+.field-input::placeholder{color:var(--muted)}
+.field-input.err,.field-select.err{border-color:#ef4444}
+.field-err{font-size:.725rem;color:#ef4444;margin-top:.35rem;font-family:var(--fM)}
+.field-select{appearance:none;cursor:pointer}
+.field-select option{background:var(--s2);color:var(--white)}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:480px){.field-row{grid-template-columns:1fr}}
+
+.field-pw{position:relative}
+.field-pw .field-input{padding-right:3rem}
+.pw-toggle{
+  position:absolute;right:.875rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:1rem;padding:.25rem;
+}
+
+/* Password strength */
+.pw-strength{display:flex;gap:4px;margin-top:.5rem}
+.ps{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .2s}
+.pw-strength-label{font-family:var(--fM);font-size:.6rem;letter-spacing:.08em;color:var(--muted);margin-top:.25rem}
+
+/* Buttons */
+.btn-p{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
+  background:var(--orange);color:#fff;
+  font-family:var(--fM);font-size:.775rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.9375rem;border:none;border-radius:var(--r1);
+  cursor:pointer;transition:all .2s;font-weight:500;
+}
+.btn-p:hover:not(:disabled){background:var(--orange-l);box-shadow:0 4px 20px rgba(255,85,0,.3)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed}
+.btn-back{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
+  background:transparent;color:var(--muted);
+  font-family:var(--fM);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.875rem;border:1px solid var(--border2);border-radius:var(--r1);
+  cursor:pointer;transition:all .2s;margin-top:.75rem;
+}
+.btn-back:hover{color:var(--white)}
+
+/* OTP */
+.otp-boxes{display:flex;gap:.625rem;justify-content:center;margin:1.25rem 0}
+.otp-box{
+  width:48px;height:58px;
+  background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:var(--r2);
+  font-family:var(--fD);font-weight:700;font-size:1.5rem;
+  text-align:center;color:var(--white);outline:none;
+  transition:border-color .2s;
+}
+.otp-box:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,85,0,.12)}
+.otp-box.filled{border-color:var(--orange)}
+
+.otp-email{font-family:var(--fM);font-size:.8rem;color:var(--cyan);text-align:center;display:block;margin-bottom:.375rem;font-weight:600}
+.otp-cd{font-family:var(--fM);font-size:.7rem;letter-spacing:.06em;text-align:center;color:var(--muted);display:block;margin-bottom:1.25rem}
+.resend-btn{background:none;border:none;cursor:pointer;font-family:var(--fM);font-size:.7rem;text-transform:uppercase;color:var(--orange);text-decoration:underline;letter-spacing:.06em}
+.resend-btn:disabled{color:var(--muted);text-decoration:none;cursor:not-allowed}
+
+/* Toast */
+.toast-box{position:fixed;top:1rem;right:1rem;z-index:999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{
+  display:flex;align-items:center;gap:.75rem;padding:.875rem 1.25rem;
+  background:var(--s1);border:1px solid var(--border2);border-radius:var(--r3);
+  font-size:.875rem;max-width:320px;animation:t-in .3s ease;pointer-events:all;
+}
+.toast.ok{border-left:3px solid var(--orange)}
+.toast.er{border-left:3px solid #ef4444}
+.toast.in{border-left:3px solid var(--cyan)}
+@keyframes t-in{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:none}}
+.theme-btn{
+  position:fixed;top:1rem;right:1rem;background:var(--s1);border:1px solid var(--border2);
+  border-radius:20px;padding:.375rem .75rem;font-family:var(--fM);font-size:.7rem;
+  color:var(--muted);cursor:pointer;z-index:10;
+}
+
+/* Spinner */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-p.loading .spinner{display:block}
+.btn-p.loading .btn-text{display:none}
+
+/* Terms */
+.terms{font-size:.8rem;color:var(--muted);margin:1.25rem 0 0;text-align:center;line-height:1.6}
+.terms a{color:var(--orange);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="toast-box" id="toastBox"></div>
+<button class="theme-btn" onclick="toggleTheme()">☀️ / 🌙</button>
+
+<div class="auth-wrap">
+  <a href="../index.html" class="auth-brand">
+    <div class="auth-mark">LF</div>
+    <span class="auth-name">LOGI<em>FLOW</em></span>
+  </a>
+
+  <!-- Progress -->
+  <div class="progress-bar">
+    <div class="pb on" id="pb1"></div>
+    <div class="pb" id="pb2"></div>
+    <div class="pb" id="pb3"></div>
+  </div>
+  <div class="step-labels">
+    <span id="sl1" class="on">01 Choose Role</span>
+    <span id="sl2">02 Your Details</span>
+    <span id="sl3">03 Verify Email</span>
+  </div>
+
+  <!-- Step 1: Role Selection -->
+  <div class="card step-panel active" id="step1">
+    <span class="card-tag">Step 1 of 3</span>
+    <h1 class="card-title">Choose Your Role</h1>
+    <p class="card-sub">Already have an account? <a href="login.html">Log in →</a></p>
+
+    <div class="role-grid">
+      <div class="role-card" data-role="company" onclick="selectRole('company',this)">
+        <span class="role-ico">🏢</span>
+        <span class="role-card-name">Company</span>
+        <span class="role-card-desc">Manufacturer or shipper managing logistics</span>
+      </div>
+      <div class="role-card" data-role="logistics" onclick="selectRole('logistics',this)">
+        <span class="role-ico">🚚</span>
+        <span class="role-card-name">Logistics Co.</span>
+        <span class="role-card-desc">Transport or logistics service provider</span>
+      </div>
+      <div class="role-card" data-role="driver" onclick="selectRole('driver',this)">
+        <span class="role-ico">🚛</span>
+        <span class="role-card-name">Driver</span>
+        <span class="role-card-desc">Truck driver assigned to shipments</span>
+      </div>
+      <div class="role-card" data-role="supplier" onclick="selectRole('supplier',this)">
+        <span class="role-ico">🏭</span>
+        <span class="role-card-name">Supplier</span>
+        <span class="role-card-desc">Vendor or raw material supplier</span>
+      </div>
+      <div class="role-card" data-role="gate" onclick="selectRole('gate',this)">
+        <span class="role-ico">🔒</span>
+        <span class="role-card-name">Gate Staff</span>
+        <span class="role-card-desc">Security or gate entry personnel</span>
+      </div>
+      <div class="role-card" data-role="manager" onclick="selectRole('manager',this)">
+        <span class="role-ico">📋</span>
+        <span class="role-card-name">Manager</span>
+        <span class="role-card-desc">Operations or logistics manager</span>
+      </div>
+    </div>
+
+    <button class="btn-p" id="nextStep1Btn" onclick="goStep2()" disabled>
+      <span class="btn-text">Continue →</span>
+    </button>
+    <button class="btn-back" onclick="window.location.href='../index.html'">← Back to Home</button>
+  </div>
+
+  <!-- Step 2: Account Details -->
+  <div class="card step-panel" id="step2">
+    <span class="card-tag">Step 2 of 3</span>
+    <h1 class="card-title">Your Details</h1>
+    <p class="card-sub">Fill in your account information.</p>
+
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">Full Name *</label>
+        <input class="field-input" type="text" id="regName" placeholder="Rajesh Kumar" autocomplete="name"/>
+        <div class="field-err" id="regNameErr"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Phone Number</label>
+        <input class="field-input" type="tel" id="regPhone" placeholder="+91 98765 43210" autocomplete="tel"/>
+        <div class="field-err" id="regPhoneErr"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Email Address *</label>
+      <input class="field-input" type="email" id="regEmail" placeholder="you@company.com" autocomplete="email"/>
+      <div class="field-err" id="regEmailErr"></div>
+    </div>
+
+    <div id="companyNameField" class="field" style="display:none">
+      <label class="field-label" id="companyLabel">Company Name *</label>
+      <input class="field-input" type="text" id="regCompanyName" placeholder="Shree Logistics Pvt Ltd"/>
+      <div class="field-err" id="regCompanyErr"></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Password *</label>
+      <div class="field-pw">
+        <input class="field-input" type="password" id="regPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" autocomplete="new-password" oninput="checkPwStrength(this.value)"/>
+        <button type="button" class="pw-toggle" onclick="togglePw('regPassword',this)">👁</button>
+      </div>
+      <div class="pw-strength" id="pwStr">
+        <div class="ps" id="ps1"></div>
+        <div class="ps" id="ps2"></div>
+        <div class="ps" id="ps3"></div>
+        <div class="ps" id="ps4"></div>
+      </div>
+      <div class="pw-strength-label" id="pwStrLabel"></div>
+      <div class="field-err" id="regPwErr"></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Confirm Password *</label>
+      <div class="field-pw">
+        <input class="field-input" type="password" id="regConfirmPw" placeholder="Repeat password" autocomplete="new-password"/>
+        <button type="button" class="pw-toggle" onclick="togglePw('regConfirmPw',this)">👁</button>
+      </div>
+      <div class="field-err" id="regCPwErr"></div>
+    </div>
+
+    <button class="btn-p" id="registerBtn" onclick="doRegister()">
+      <div class="spinner"></div>
+      <span class="btn-text">Create Account →</span>
+    </button>
+    <button class="btn-back" onclick="goStep1()">← Back</button>
+
+    <p class="terms">By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+  </div>
+
+  <!-- Step 3: OTP Verification -->
+  <div class="card step-panel" id="step3">
+    <span class="card-tag">Step 3 of 3</span>
+    <h1 class="card-title">Verify Email</h1>
+    <p class="card-sub">We sent a 6-digit code to:</p>
+    <span class="otp-email" id="regOtpEmail"></span>
+    <span class="otp-cd" id="otpCd"></span>
+
+    <div class="otp-boxes">
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro1" onkeyup="otpMov(event,null,'ro2')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro2" onkeyup="otpMov(event,'ro1','ro3')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro3" onkeyup="otpMov(event,'ro2','ro4')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro4" onkeyup="otpMov(event,'ro3','ro5')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro5" onkeyup="otpMov(event,'ro4','ro6')"/>
+      <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="ro6" onkeyup="otpMov(event,'ro5',null)"/>
+    </div>
+
+    <button class="btn-p" id="verifyBtn" onclick="doVerify()">
+      <div class="spinner"></div>
+      <span class="btn-text">Verify & Enter Dashboard →</span>
+    </button>
+    <div style="text-align:center;margin-top:1rem;font-family:var(--fM);font-size:.7rem;color:var(--muted)">
+      Didn't receive it?
+      <button class="resend-btn" id="resendOtpBtn" onclick="doResend()" disabled>Resend OTP</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const API  = '/api';
+let selectedRole = '';
+let registeredEmail = '';
+let resendTimer;
+
+/* ─── Theme ─── */
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'dark';
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('lf-theme',next);
+}
+
+/* ─── Toast ─── */
+function toast(msg,type='in'){
+  const box=document.getElementById('toastBox');
+  const icons={ok:'✅',er:'❌',in:'ℹ️'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span style="flex:1">${msg}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>`;
+  box.appendChild(el);
+  setTimeout(()=>el.remove(),5000);
+}
+
+/* ─── Progress ─── */
+function setProgress(step){
+  for(let i=1;i<=3;i++){
+    document.getElementById(`pb${i}`).className='pb'+(i<step?' done':i===step?' on':'');
+    const sl=document.getElementById(`sl${i}`);
+    sl.className=i<step?'done':i===step?'on':'';
+  }
+}
+
+/* ─── Step nav ─── */
+function showStep(n){
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+  setProgress(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goStep1(){ showStep(1) }
+function goStep2(){ if(!selectedRole){toast('Select a role first','er');return;} showStep(2) }
+
+/* ─── Role selection ─── */
+function selectRole(role,el){
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRole=role;
+  document.getElementById('nextStep1Btn').disabled=false;
+
+  // Show company name field for company/logistics roles
+  const cf=document.getElementById('companyNameField');
+  const cl=document.getElementById('companyLabel');
+  if(role==='company'||role==='logistics'){
+    cf.style.display='block';
+    cl.textContent=role==='logistics'?'Logistics Company Name *':'Company Name *';
+  } else {
+    cf.style.display='none';
+    document.getElementById('regCompanyName').value='';
+  }
+}
+
+/* ─── Password toggle ─── */
+function togglePw(id,btn){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
+}
+
+/* ─── Password strength ─── */
+function checkPwStrength(pw){
+  const bars=[document.getElementById('ps1'),document.getElementById('ps2'),document.getElementById('ps3'),document.getElementById('ps4')];
+  const label=document.getElementById('pwStrLabel');
+  const hasLen=pw.length>=8;
+  const hasUpper=/[A-Z]/.test(pw);
+  const hasNum=/[0-9]/.test(pw);
+  const hasSpec=/[^A-Za-z0-9]/.test(pw);
+  let score=0;
+  if(hasLen) score++;
+  if(hasUpper) score++;
+  if(hasNum) score++;
+  if(hasSpec) score++;
+
+  const colors=['#ef4444','#f97316','#eab308','#22c55e'];
+  const labels=['Weak','Fair','Good','Strong'];
+  bars.forEach((b,i)=>{
+    b.style.background=i<score?colors[score-1]:'var(--border)';
+  });
+  label.textContent=score>0?labels[score-1]:'';
+  label.style.color=colors[score-1]||'var(--muted)';
+}
+
+/* ─── Loading state ─── */
+function setLoading(id,on){
+  const btn=document.getElementById(id);
+  btn.disabled=on;
+  btn.classList.toggle('loading',on);
+}
+
+/* ─── Field error helper ─── */
+function setErr(id,msg){
+  document.getElementById(id).textContent=msg;
+  return !msg;
+}
+function clearErrs(){
+  ['regNameErr','regEmailErr','regPhoneErr','regPwErr','regCPwErr','regCompanyErr']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+}
+
+/* ─── REGISTER ─── */
+async function doRegister(){
+  clearErrs();
+  const name      = document.getElementById('regName').value.trim();
+  const email     = document.getElementById('regEmail').value.trim();
+  const phone     = document.getElementById('regPhone').value.trim();
+  const password  = document.getElementById('regPassword').value;
+  const confirm   = document.getElementById('regConfirmPw').value;
+  const company   = document.getElementById('regCompanyName').value.trim();
+  let valid=true;
+
+  if(!name||name.length<2)    { setErr('regNameErr','Name must be at least 2 characters'); valid=false; }
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('regEmailErr','Valid email required'); valid=false; }
+  if(phone&&!/^(\+91)?[6-9]\d{9}$/.test(phone.replace(/\s/g,''))) { setErr('regPhoneErr','Enter a valid Indian phone number'); valid=false; }
+  if(!password||password.length<8) { setErr('regPwErr','Minimum 8 characters'); valid=false; }
+  else if(!/[A-Z]/.test(password))  { setErr('regPwErr','Add at least one uppercase letter'); valid=false; }
+  else if(!/[0-9]/.test(password))  { setErr('regPwErr','Add at least one number'); valid=false; }
+  if(password!==confirm)         { setErr('regCPwErr','Passwords do not match'); valid=false; }
+  if((selectedRole==='company'||selectedRole==='logistics')&&!company) {
+    setErr('regCompanyErr','Company name is required'); valid=false;
+  }
+  if(!valid) return;
+
+  setLoading('registerBtn',true);
+  try {
+    const body={name,email,password,role:selectedRole};
+    if(phone) body.phone=phone;
+    if(company) body.companyName=company;
+
+    const res  = await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await res.json();
+
+    if(!data.success){ toast(data.message||'Registration failed','er'); return; }
+
+    registeredEmail = data.data.email;
+    document.getElementById('regOtpEmail').textContent=registeredEmail;
+    showStep(3);
+    startTimer();
+    toast('Account created! Check your email for the verification code.','ok');
+
+  } catch {
+    toast('Connection error. Please try again.','er');
+  } finally {
+    setLoading('registerBtn',false);
+  }
+}
+
+/* ─── OTP nav ─── */
+function otpMov(e,prev,next){
+  const v=e.target.value;
+  if(v.length>1){
+    const d=v.replace(/\D/g,'').slice(0,6);
+    ['ro1','ro2','ro3','ro4','ro5','ro6'].forEach((id,i)=>{
+      const el=document.getElementById(id);
+      if(el&&d[i])el.value=d[i];
+    });
+    document.getElementById('ro6')?.focus();return;
+  }
+  if(v&&next) document.getElementById(next)?.focus();
+  if(!v&&e.key==='Backspace'&&prev) document.getElementById(prev)?.focus();
+  e.target.classList.toggle('filled',!!v);
+}
+
+function getRegOTP(){
+  return['ro1','ro2','ro3','ro4','ro5','ro6'].map(id=>document.getElementById(id).value).join('');
+}
+
+/* ─── VERIFY ─── */
+async function doVerify(){
+  const otp=getRegOTP();
+  if(otp.length<6){toast('Enter all 6 digits','er');return;}
+
+  setLoading('verifyBtn',true);
+  try {
+    const res  = await fetch(`${API}/auth/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:registeredEmail,otp})});
+    const data = await res.json();
+
+    if(!data.success){toast(data.message||'Invalid OTP','er');return;}
+
+    localStorage.setItem('lf-token',   data.data.accessToken);
+    localStorage.setItem('lf-refresh', data.data.refreshToken);
+    localStorage.setItem('lf-user',    JSON.stringify(data.data.user));
+
+    toast('Email verified! Welcome to LogiFlow 🚛','ok');
+    const roleMap={admin:'../pages/dashboard/admin.html',company:'../pages/dashboard/company.html',logistics:'../pages/dashboard/logistics.html',manager:'../pages/dashboard/manager.html',driver:'../pages/dashboard/driver.html',supplier:'../pages/dashboard/supplier.html',gate:'../pages/dashboard/gate.html'};
+    setTimeout(()=>{window.location.href=roleMap[data.data.user.role]||'../pages/dashboard.html'},700);
+
+  } catch {
+    toast('Connection error. Please try again.','er');
+  } finally {
+    setLoading('verifyBtn',false);
+  }
+}
+
+/* ─── RESEND ─── */
+async function doResend(){
+  document.getElementById('resendOtpBtn').disabled=true;
+  try {
+    const res  = await fetch(`${API}/auth/resend-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:registeredEmail})});
+    const data = await res.json();
+    toast(data.message||'New OTP sent','in');
+    startTimer();
+  } catch {
+    toast('Failed to resend. Please try again.','er');
+    document.getElementById('resendOtpBtn').disabled=false;
+  }
+}
+
+function startTimer(){
+  clearInterval(resendTimer);
+  let s=60;
+  const btn=document.getElementById('resendOtpBtn');
+  const cd=document.getElementById('otpCd');
+  btn.disabled=true;
+  (function tick(){
+    cd.textContent=`Code expires in ${s}s`;
+    if(s<=0){clearInterval(resendTimer);btn.disabled=false;cd.textContent='Code expired. Click Resend.';return;}
+    s--;resendTimer=setTimeout(tick,1000);
+  })();
+}
+
+/* ─── Pre-fill role from query param ─── */
+const qRole=new URLSearchParams(window.location.search).get('role');
+if(qRole){
+  const rc=document.querySelector(`[data-role="${qRole}"]`);
+  if(rc) selectRole(qRole,rc);
+}
+const qPlan=new URLSearchParams(window.location.search).get('plan');
+if(qPlan) toast(`Starting ${qPlan} plan — create your account below.`,'in');
+</script>
+</body>
+</html>

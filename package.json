@@ -1,0 +1,22 @@
+{
+  "name": "ai-logistics-platform",
+  "version": "1.0.0",
+  "description": "AI-powered logistics and supply chain management platform for Indian businesses",
+  "private": true,
+  "workspaces": [
+    "backend"
+  ],
+  "scripts": {
+    "dev":        "cd backend && npm run dev",
+    "start":      "cd backend && npm start",
+    "install:all":"cd backend && npm install",
+    "setup":      "node scripts/setup.js"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm":  ">=9.0.0"
+  },
+  "keywords": ["logistics", "supply-chain", "pwa", "nodejs", "mongodb", "india"],
+  "author": "LogiFlow Technologies",
+  "license": "MIT"
+}
