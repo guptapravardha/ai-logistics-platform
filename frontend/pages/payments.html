@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payments & Invoices — LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/payments.css" />
+</head>
+<body>
+
+<!-- Sidebar (same as other pages) -->
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🚛</span>
+      <span class="logo-text">LogiFlow</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+      <a href="shipments.html" class="nav-item">📦 Shipments</a>
+      <a href="drivers.html" class="nav-item">👤 Drivers</a>
+      <a href="fleet.html" class="nav-item">🚚 Fleet</a>
+      <a href="gate-entry.html" class="nav-item">🚧 Gate Entry</a>
+      <a href="payments.html" class="nav-item active">💰 Payments</a>
+      <a href="analytics.html" class="nav-item">📈 Analytics</a>
+      <a href="settings.html" class="nav-item">⚙️ Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="page-title">Payments &amp; Invoices</h1>
+      </div>
+      <div class="topbar-right">
+        <span class="phase-badge">Phase 7</span>
+        <button class="btn btn-primary" onclick="openInvoiceModal()">+ Generate Invoice</button>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Invoiced</div>
+        <div class="stat-value" id="stat-total">₹0</div>
+        <div class="stat-sub green">This month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Collected</div>
+        <div class="stat-value" id="stat-collected">₹0</div>
+        <div class="stat-sub green">Paid invoices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Outstanding</div>
+        <div class="stat-value" id="stat-outstanding">₹0</div>
+        <div class="stat-sub amber">Pending / Overdue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Alerts Sent</div>
+        <div class="stat-value" id="stat-alerts">0</div>
+        <div class="stat-sub blue">Push + Email</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('invoices', this)">Invoices</button>
+      <button class="tab" onclick="switchTab('payments', this)">Payments</button>
+      <button class="tab" onclick="switchTab('notifications', this)">Notifications</button>
+      <button class="tab" onclick="switchTab('settings', this)">Alert Settings</button>
+    </div>
+
+    <!-- INVOICES PANEL -->
+    <div class="tab-panel active" id="panel-invoices">
+      <div class="panel-header">
+        <span class="panel-title">Invoice Register</span>
+        <div class="panel-actions">
+          <input type="text" class="search-input" placeholder="Search invoices..." oninput="filterInvoices(this.value)" />
+          <select class="filter-select" onchange="filterByStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="overdue">Overdue</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+      <div class="invoice-list" id="invoice-list"></div>
+    </div>
+
+    <!-- PAYMENTS PANEL -->
+    <div class="tab-panel" id="panel-payments">
+      <div class="panel-header">
+        <span class="panel-title">Payment Tracker</span>
+      </div>
+      <div class="pay-timeline" id="pay-timeline"></div>
+    </div>
+
+    <!-- NOTIFICATIONS PANEL -->
+    <div class="tab-panel" id="panel-notifications">
+      <div class="panel-header">
+        <span class="panel-title">Notification Feed</span>
+        <button class="btn btn-sm" onclick="markAllRead()">Mark All Read</button>
+      </div>
+      <div class="notif-list" id="notif-list"></div>
+    </div>
+
+    <!-- ALERT SETTINGS PANEL -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="panel-header">
+        <span class="panel-title">Alert Configuration</span>
+      </div>
+      <div class="settings-grid" id="settings-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Generate Invoice</h3>
+      <button class="modal-close" onclick="closeInvoiceModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Client Name</label>
+        <input type="text" id="f-client" placeholder="e.g. Reliance Logistics Ltd." />
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Shipment ID</label>
+          <input type="text" id="f-ship" placeholder="SHP-00421" />
+        </div>
+        <div class="form-row">
+          <label>Due Date</label>
+          <input type="date" id="f-due" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Freight Charges (₹)</label>
+          <input type="number" id="f-freight" placeholder="45000" oninput="updatePreview()" />
+        </div>
+        <div class="form-row">
+          <label>Handling Fees (₹)</label>
+          <input type="number" id="f-handling" placeholder="3500" oninput="updatePreview()" />
+        </div>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="invoice-preview">
+        <div class="preview-header">
+          <div>
+            <div class="preview-id" id="prev-id">INV-2026-0001</div>
+            <div class="preview-sub">LogiFlow OS · Auto-generated</div>
+          </div>
+          <span class="badge badge-draft">Draft</span>
+        </div>
+        <div class="preview-line"><span>Freight Charges</span><span id="prev-freight">₹0</span></div>
+        <div class="preview-line"><span>Handling Fees</span><span id="prev-handling">₹0</span></div>
+        <div class="preview-line"><span>GST 18%</span><span id="prev-gst">₹0</span></div>
+        <div class="preview-line total"><span>Total Payable</span><span id="prev-total">₹0</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeInvoiceModal()">Cancel</button>
+      <button class="btn btn-outline" onclick="saveInvoice('draft')">Save Draft</button>
+      <button class="btn btn-primary" onclick="saveInvoice('pending')">Generate &amp; Send</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/payments.js"></script>
+</body>
+</html>

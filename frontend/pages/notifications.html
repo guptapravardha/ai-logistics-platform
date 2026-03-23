@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications — LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/payments.css" />
+</head>
+<body>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🚛</span>
+      <span class="logo-text">LogiFlow</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+      <a href="shipments.html" class="nav-item">📦 Shipments</a>
+      <a href="drivers.html" class="nav-item">👤 Drivers</a>
+      <a href="fleet.html" class="nav-item">🚚 Fleet</a>
+      <a href="gate-entry.html" class="nav-item">🚧 Gate Entry</a>
+      <a href="payments.html" class="nav-item">💰 Payments</a>
+      <a href="analytics.html" class="nav-item">📈 Analytics</a>
+      <a href="settings.html" class="nav-item active">⚙️ Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="page-title">Notifications</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-sm" onclick="markAllRead()">Mark All Read</button>
+        <span class="notif-count" id="unread-count">0 unread</span>
+      </div>
+    </div>
+
+    <div class="notif-filters">
+      <button class="filter-btn active" onclick="filterNotifs('all', this)">All</button>
+      <button class="filter-btn" onclick="filterNotifs('payment', this)">Payments</button>
+      <button class="filter-btn" onclick="filterNotifs('invoice', this)">Invoices</button>
+      <button class="filter-btn" onclick="filterNotifs('overdue', this)">Overdue</button>
+      <button class="filter-btn" onclick="filterNotifs('alert', this)">AI Alerts</button>
+    </div>
+
+    <div class="notif-list" id="notif-list-page"></div>
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/notifications.js"></script>
+</body>
+</html>
