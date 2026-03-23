@@ -1,0 +1,27 @@
+/* ─── settings.css ─── */
+.settings-layout { display: flex; gap: 24px; align-items: flex-start; }
+.settings-nav { width: 200px; flex-shrink: 0; background: var(--bg-card,#fff); border: 1px solid var(--border,#e5e7eb); border-radius: 12px; padding: 8px; }
+.settings-nav-item { display: block; width: 100%; text-align: left; padding: 10px 14px; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-muted,#6b7280); background: transparent; margin-bottom: 2px; }
+.settings-nav-item:hover, .settings-nav-item.active { background: var(--bg-secondary,#f3f4f6); color: var(--text-primary,#111827); }
+.settings-content { flex: 1; min-width: 0; }
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+.settings-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary,#111827); }
+.settings-card { background: var(--bg-card,#fff); border: 1px solid var(--border,#e5e7eb); border-radius: 12px; padding: 20px 22px; }
+.settings-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--text-primary,#111827); }
+.form-actions { margin-top: 16px; }
+.avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.avatar-circle { width: 56px; height: 56px; border-radius: 50%; background: #FAEEDA; color: #633806; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; flex-shrink: 0; }
+.integrations-grid { display: flex; flex-direction: column; gap: 12px; }
+.integration-card { display: flex; align-items: center; gap: 14px; background: var(--bg-card,#fff); border: 1px solid var(--border,#e5e7eb); border-radius: 10px; padding: 14px 16px; }
+.integration-icon { font-size: 22px; width: 40px; text-align: center; flex-shrink: 0; }
+.integration-info { flex: 1; }
+.integration-name { font-size: 13px; font-weight: 600; color: var(--text-primary,#111827); }
+.integration-desc { font-size: 12px; color: var(--text-muted,#6b7280); margin-top: 2px; }
+.billing-plan { text-align: center; padding: 32px; }
+.plan-badge { display: inline-block; background: #FAEEDA; color: #633806; font-size: 12px; font-weight: 600; padding: 4px 14px; border-radius: 20px; margin-bottom: 10px; }
+.plan-desc { font-size: 13px; color: var(--text-muted,#6b7280); margin-bottom: 12px; }
+.plan-price { font-size: 28px; font-weight: 700; color: var(--text-primary,#111827); margin-bottom: 16px; }
+.plan-price span { font-size: 14px; font-weight: 400; color: var(--text-muted,#6b7280); }
+.danger-zone { border-color: #fca5a5; }
+@media (max-width: 768px) { .settings-layout { flex-direction: column; } .settings-nav { width: 100%; } }

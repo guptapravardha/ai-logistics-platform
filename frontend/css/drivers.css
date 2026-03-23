@@ -1,0 +1,17 @@
+/* ─── drivers.css ─── */
+.drivers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.driver-card { background: var(--bg-card,#fff); border: 1px solid var(--border,#e5e7eb); border-radius: 12px; padding: 16px; cursor: pointer; transition: border-color .2s; }
+.driver-card:hover { border-color: #EF9F27; }
+.driver-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.driver-avatar { width: 44px; height: 44px; border-radius: 50%; background: #FAEEDA; color: #633806; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+.driver-avatar.large { width: 64px; height: 64px; font-size: 20px; }
+.driver-name { font-size: 14px; font-weight: 600; color: var(--text-primary,#111827); }
+.driver-phone { font-size: 12px; color: var(--text-muted,#6b7280); margin-top: 2px; }
+.driver-status { font-size: 11px; font-weight: 500; margin-top: 3px; text-transform: capitalize; }
+.driver-rating { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--text-primary,#111827); }
+.driver-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; padding: 10px; background: var(--bg-secondary,#f9fafb); border-radius: 8px; }
+.ds-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ds-item span:first-child { font-size: 13px; font-weight: 600; color: var(--text-primary,#111827); }
+.ds-item span:last-child { font-size: 10px; color: var(--text-muted,#6b7280); text-transform: capitalize; }
+.driver-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.driver-profile-header { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border,#e5e7eb); }

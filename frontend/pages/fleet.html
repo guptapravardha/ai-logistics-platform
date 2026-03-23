@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fleet — LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/fleet.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">🚛</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"  class="nav-item">📊 Dashboard</a>
+      <a href="shipments.html"  class="nav-item">📦 Shipments</a>
+      <a href="drivers.html"    class="nav-item">👤 Drivers</a>
+      <a href="fleet.html"      class="nav-item active">🚚 Fleet</a>
+      <a href="gate-entry.html" class="nav-item">🚧 Gate Entry</a>
+      <a href="payments.html"   class="nav-item">💰 Payments</a>
+      <a href="analytics.html"  class="nav-item">📈 Analytics</a>
+      <a href="settings.html"   class="nav-item">⚙️ Settings</a>
+    </nav>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="page-title">Fleet Management</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('create-vehicle-modal')">+ Add Vehicle</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Total Vehicles</div><div class="stat-value" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="stat-active">0</div></div>
+      <div class="stat-card"><div class="stat-label">In Maintenance</div><div class="stat-value" id="stat-maintenance">0</div></div>
+      <div class="stat-card"><div class="stat-label">Idle</div><div class="stat-value" id="stat-idle">0</div></div>
+    </div>
+
+    <div class="filters-bar">
+      <input type="text" class="search-input" placeholder="Search vehicles..." oninput="searchVehicles(this.value)"/>
+      <select class="filter-select" onchange="filterVehicles('status', this.value)">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="idle">Idle</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="breakdown">Breakdown</option>
+      </select>
+      <select class="filter-select" onchange="filterVehicles('type', this.value)">
+        <option value="">All Types</option>
+        <option value="truck">Truck</option>
+        <option value="mini_truck">Mini Truck</option>
+        <option value="trailer">Trailer</option>
+        <option value="tempo">Tempo</option>
+      </select>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table" id="fleet-table">
+        <thead>
+          <tr>
+            <th>Vehicle No.</th>
+            <th>Type</th>
+            <th>Make / Model</th>
+            <th>Capacity</th>
+            <th>Assigned Driver</th>
+            <th>Status</th>
+            <th>Insurance Expiry</th>
+            <th>FC Expiry</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="fleet-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Add Vehicle Modal -->
+<div class="modal-overlay" id="create-vehicle-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Add Vehicle</h3>
+      <button class="modal-close" onclick="closeModal('create-vehicle-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-3">
+        <div class="form-row"><label>Vehicle Number *</label><input type="text" id="v-number" placeholder="MH 04 AB 1234"/></div>
+        <div class="form-row"><label>Type *</label>
+          <select id="v-type">
+            <option value="truck">Truck</option>
+            <option value="mini_truck">Mini Truck</option>
+            <option value="trailer">Trailer</option>
+            <option value="tempo">Tempo</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Capacity (tons)</label><input type="number" id="v-capacity" placeholder="0"/></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>Make</label><input type="text" id="v-make" placeholder="Tata, Ashok Leyland..."/></div>
+        <div class="form-row"><label>Model</label><input type="text" id="v-model" placeholder="Model name"/></div>
+        <div class="form-row"><label>Year</label><input type="number" id="v-year" placeholder="2022"/></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>RC Expiry</label><input type="date" id="v-rc"/></div>
+        <div class="form-row"><label>Insurance Expiry</label><input type="date" id="v-insurance"/></div>
+        <div class="form-row"><label>FC Expiry</label><input type="date" id="v-fc"/></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Assigned Driver</label>
+          <select id="v-driver"><option value="">Unassigned</option></select>
+        </div>
+        <div class="form-row"><label>GPS Device ID</label><input type="text" id="v-gps" placeholder="GPS-XXXXX"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('create-vehicle-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createVehicle()">Add Vehicle</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/fleet.js"></script>
+</body>
+</html>

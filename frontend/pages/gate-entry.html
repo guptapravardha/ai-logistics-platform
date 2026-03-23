@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gate Entry — LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/gate-entry.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">🚛</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"  class="nav-item">📊 Dashboard</a>
+      <a href="shipments.html"  class="nav-item">📦 Shipments</a>
+      <a href="drivers.html"    class="nav-item">👤 Drivers</a>
+      <a href="fleet.html"      class="nav-item">🚚 Fleet</a>
+      <a href="gate-entry.html" class="nav-item active">🚧 Gate Entry</a>
+      <a href="payments.html"   class="nav-item">💰 Payments</a>
+      <a href="analytics.html"  class="nav-item">📈 Analytics</a>
+      <a href="settings.html"   class="nav-item">⚙️ Settings</a>
+    </nav>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="page-title">Gate Entry</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('manual-entry-modal')">+ Manual Entry</button>
+        <button class="btn btn-outline" onclick="openScanner()">📷 Scan QR</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Today's Entries</div><div class="stat-value" id="stat-entries">0</div></div>
+      <div class="stat-card"><div class="stat-label">Vehicles In</div><div class="stat-value" id="stat-in">0</div></div>
+      <div class="stat-card"><div class="stat-label">Vehicles Out</div><div class="stat-value" id="stat-out">0</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Exit</div><div class="stat-value" id="stat-pending">0</div></div>
+    </div>
+
+    <!-- QR Scanner Area -->
+    <div class="scanner-area" id="scanner-area" style="display:none;">
+      <div class="scanner-box">
+        <div class="scanner-frame"></div>
+        <p class="scanner-hint">Point camera at QR code</p>
+        <button class="btn btn-sm" onclick="closeScanner()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Quick Search by Vehicle -->
+    <div class="gate-search-bar">
+      <input type="text" id="gate-search" placeholder="Search by vehicle number or shipment ID..." oninput="searchGateEntries(this.value)"/>
+      <select class="filter-select" onchange="filterGate('type', this.value)">
+        <option value="">All Types</option>
+        <option value="entry">Entry</option>
+        <option value="exit">Exit</option>
+      </select>
+      <input type="date" class="filter-date" onchange="filterGate('date', this.value)"/>
+    </div>
+
+    <!-- Live Gate Log -->
+    <div class="gate-log-header">
+      <span class="panel-title">Gate Log — Today</span>
+      <button class="btn btn-sm" onclick="exportGateLog()">Export</button>
+    </div>
+    <div class="gate-log" id="gate-log"></div>
+  </main>
+</div>
+
+<!-- Manual Entry Modal -->
+<div class="modal-overlay" id="manual-entry-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Gate Entry / Exit</h3>
+      <button class="modal-close" onclick="closeModal('manual-entry-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="entry-type-toggle">
+        <button class="entry-type-btn active" id="btn-entry" onclick="setEntryType('entry')">Entry In</button>
+        <button class="entry-type-btn" id="btn-exit" onclick="setEntryType('exit')">Exit Out</button>
+      </div>
+      <div class="form-row"><label>Vehicle Number *</label><input type="text" id="ge-vehicle" placeholder="MH 04 AB 1234"/></div>
+      <div class="form-row"><label>Shipment ID</label><input type="text" id="ge-shipment" placeholder="SHP-XXXXX"/></div>
+      <div class="form-row"><label>Driver Name</label><input type="text" id="ge-driver" placeholder="Driver name"/></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Weight In (kg)</label><input type="number" id="ge-weight-in" placeholder="0"/></div>
+        <div class="form-row"><label>Weight Out (kg)</label><input type="number" id="ge-weight-out" placeholder="0"/></div>
+      </div>
+      <div class="form-row"><label>Remarks</label><textarea id="ge-remarks" rows="2" placeholder="Optional remarks..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('manual-entry-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="recordEntry()">Record Entry</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/gate-entry.js"></script>
+</body>
+</html>

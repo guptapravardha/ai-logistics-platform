@@ -1,0 +1,4 @@
+/* ─── fleet.css ─── */
+/* Fleet page uses data-table from shared-pages.css — just add page-specific styles */
+.expiry-warn { color: #E24B4A; font-weight: 600; }
+.expiry-ok   { color: #1D9E75; }

@@ -1,89 +1,51 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const vehicleSchema = new mongoose.Schema(
-  {
-    // Identity
-    registrationNumber: { type: String, required: true, unique: true, uppercase: true, trim: true },
-    vehicleType: {
-      type: String,
-      enum: ["Mini Truck", "LCV", "HCV", "Trailer", "Container", "Tanker", "Reefer"],
-      required: true,
-    },
-    make:  { type: String, required: true }, // e.g. Tata
-    model: { type: String, required: true }, // e.g. Ace
-    year:  { type: Number },
-    color: { type: String, default: "" },
-
-    // Capacity
-    capacity: {
-      weightKg:   { type: Number, required: true }, // max load in KG
-      volumeCbm:  { type: Number, default: 0 },     // cubic metres
-    },
-
-    // Compliance & Expiry Dates
-    compliance: {
-      insuranceExpiry: { type: Date },
-      permitExpiry:    { type: Date },
-      fitnessExpiry:   { type: Date },
-      pucExpiry:       { type: Date },
-    },
-
-    // GPS
-    gpsDeviceId: { type: String, default: "" },
-    lastLocation: {
-      lat:       { type: Number, default: null },
-      lng:       { type: Number, default: null },
-      speed:     { type: Number, default: 0 },   // km/h
-      updatedAt: { type: Date,   default: null },
-    },
-
-    // Assignment
-    assignedDriver: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Driver",
-      default: null,
-    },
-    company: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-
-    // Status
-    status: {
-      type: String,
-      enum: ["available", "in-use", "maintenance", "inactive"],
-      default: "available",
-    },
-
-    // Fuel & Maintenance
-    fuelType: {
-      type: String,
-      enum: ["Diesel", "Petrol", "CNG", "Electric", "Other"],
-      default: "Diesel",
-    },
-    lastServiceDate:    { type: Date },
-    nextServiceDueKm:   { type: Number, default: 0 },
-    currentOdometerKm:  { type: Number, default: 0 },
-
-    notes:    { type: String, default: "" },
-    isActive: { type: Boolean, default: true },
+const vehicleSchema = new mongoose.Schema({
+  vehicleNumber: { type: String, required: true, unique: true },
+  type: {
+    type: String,
+    enum: ['truck', 'mini_truck', 'trailer', 'tempo'],
+    required: true,
   },
-  { timestamps: true }
-);
+  make:     { type: String },
+  model:    { type: String },
+  year:     { type: Number },
+  capacity: { type: Number, default: 0 }, // in tons
+  status: {
+    type: String,
+    enum: ['active', 'idle', 'maintenance', 'breakdown'],
+    default: 'idle',
+  },
+  assignedDriver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
+  gpsDeviceId:    { type: String },
+  currentLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String },
+    updatedAt: { type: Date },
+  },
+  documents: {
+    rc:           { expiry: Date },
+    insurance:    { expiry: Date, provider: String },
+    fc:           { expiry: Date },
+    pollution:    { expiry: Date },
+    permit:       { expiry: Date },
+  },
+  company:  { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+  notes:    { type: String },
+}, { timestamps: true });
 
-// Virtual: days until insurance expires
-vehicleSchema.virtual("insuranceDaysLeft").get(function () {
-  if (!this.compliance.insuranceExpiry) return null;
-  const diff = new Date(this.compliance.insuranceExpiry) - new Date();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-});
+// Check if any document is expiring within N days
+vehicleSchema.methods.getExpiringDocs = function (days = 30) {
+  const cutoff = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const expiring = [];
+  const docs = this.documents;
+  if (docs.insurance?.expiry && docs.insurance.expiry < cutoff) expiring.push('Insurance');
+  if (docs.fc?.expiry         && docs.fc.expiry         < cutoff) expiring.push('Fitness Certificate');
+  if (docs.rc?.expiry         && docs.rc.expiry         < cutoff) expiring.push('RC');
+  if (docs.pollution?.expiry  && docs.pollution.expiry  < cutoff) expiring.push('Pollution');
+  if (docs.permit?.expiry     && docs.permit.expiry     < cutoff) expiring.push('Permit');
+  return expiring;
+};
 
-vehicleSchema.set("toJSON", { virtuals: true });
-vehicleSchema.set("toObject", { virtuals: true });
-
-vehicleSchema.index({ status: 1 });
-vehicleSchema.index({ company: 1 });
-vehicleSchema.index({ registrationNumber: 1 });
-
-module.exports = mongoose.model("Vehicle", vehicleSchema);
+module.exports = mongoose.model('Vehicle', vehicleSchema);

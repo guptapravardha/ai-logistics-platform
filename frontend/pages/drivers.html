@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drivers — LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/drivers.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">🚛</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"  class="nav-item">📊 Dashboard</a>
+      <a href="shipments.html"  class="nav-item">📦 Shipments</a>
+      <a href="drivers.html"    class="nav-item active">👤 Drivers</a>
+      <a href="fleet.html"      class="nav-item">🚚 Fleet</a>
+      <a href="gate-entry.html" class="nav-item">🚧 Gate Entry</a>
+      <a href="payments.html"   class="nav-item">💰 Payments</a>
+      <a href="analytics.html"  class="nav-item">📈 Analytics</a>
+      <a href="settings.html"   class="nav-item">⚙️ Settings</a>
+    </nav>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="page-title">Drivers</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('create-driver-modal')">+ Add Driver</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Total Drivers</div><div class="stat-value" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="stat-available">0</div></div>
+      <div class="stat-card"><div class="stat-label">On Trip</div><div class="stat-value" id="stat-on-trip">0</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-value" id="stat-rating">0</div></div>
+    </div>
+
+    <div class="filters-bar">
+      <input type="text" class="search-input" placeholder="Search drivers..." oninput="searchDrivers(this.value)"/>
+      <select class="filter-select" onchange="filterDrivers('status', this.value)">
+        <option value="">All Status</option>
+        <option value="available">Available</option>
+        <option value="on_trip">On Trip</option>
+        <option value="off_duty">Off Duty</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <div class="drivers-grid" id="drivers-grid"></div>
+  </main>
+</div>
+
+<!-- Add Driver Modal -->
+<div class="modal-overlay" id="create-driver-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Add Driver</h3>
+      <button class="modal-close" onclick="closeModal('create-driver-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-row"><label>Full Name *</label><input type="text" id="d-name" placeholder="Driver full name"/></div>
+        <div class="form-row"><label>Phone *</label><input type="tel" id="d-phone" placeholder="+91 98765 43210"/></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>License Number *</label><input type="text" id="d-license" placeholder="DL-1234567890123"/></div>
+        <div class="form-row"><label>License Expiry *</label><input type="date" id="d-license-exp"/></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Aadhar Number</label><input type="text" id="d-aadhar" placeholder="XXXX XXXX XXXX"/></div>
+        <div class="form-row"><label>Experience (years)</label><input type="number" id="d-exp" placeholder="0"/></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Vehicle Type</label>
+          <select id="d-vtype">
+            <option value="truck">Truck</option>
+            <option value="mini_truck">Mini Truck</option>
+            <option value="trailer">Trailer</option>
+            <option value="tempo">Tempo</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Home Base City</label><input type="text" id="d-city" placeholder="City"/></div>
+      </div>
+      <div class="form-row"><label>Emergency Contact</label><input type="text" id="d-emergency" placeholder="Name — Phone"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('create-driver-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createDriver()">Add Driver</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Driver Modal -->
+<div class="modal-overlay" id="view-driver-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="driver-view-title">Driver Profile</h3>
+      <button class="modal-close" onclick="closeModal('view-driver-modal')">×</button>
+    </div>
+    <div class="modal-body" id="driver-view-body"></div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/drivers.js"></script>
+</body>
+</html>
