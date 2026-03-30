@@ -88,6 +88,7 @@ module.exports = {
   protect,
   requireVerified,
   requireRole,
+  authorizeRoles: requireRole,
   requireAdmin,
   requireCompany,
   requireLogistics,

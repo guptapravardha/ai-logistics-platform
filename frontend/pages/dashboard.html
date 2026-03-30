@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">LF</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active">Dashboard</a>
+      <a href="shipments.html" class="nav-item">Shipments</a>
+      <a href="drivers.html" class="nav-item">Drivers</a>
+      <a href="fleet.html" class="nav-item">Fleet</a>
+      <a href="gate-entry.html" class="nav-item">Gate Entry</a>
+      <a href="payments.html" class="nav-item">Payments</a>
+      <a href="analytics.html" class="nav-item">Analytics</a>
+      <a href="ai.html" class="nav-item">AI Hub</a>
+      <a href="settings.html" class="nav-item">Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">Menu</button>
+        <div>
+          <h1 class="dashboard-title">Operations Dashboard</h1>
+          <p class="dashboard-sub">A single logistics control tower for operations, fleet, and finance.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-p" onclick="window.location.href='shipments/create-shipment.html'">New Shipment</button>
+      </div>
+    </div>
+
+    <section class="dashboard-hero">
+      <article class="hero-strip">
+        <p class="muted">Today</p>
+        <h2 style="margin-top:0">Keep shipments moving without WhatsApp chaos.</h2>
+        <p class="muted">Track dispatches, review delays, assign drivers, monitor payments, and use AI recommendations from one workspace.</p>
+        <div class="quick-grid">
+          <a class="quick-link" href="shipments.html">Open Shipment Board</a>
+          <a class="quick-link" href="fleet/gps-tracking.html">Live GPS Tracking</a>
+          <a class="quick-link" href="payments.html">Payment Status</a>
+          <a class="quick-link" href="ai.html">Ask AI Assistant</a>
+        </div>
+      </article>
+      <article class="summary-card">
+        <h3 style="margin-top:0">Alerts</h3>
+        <div class="mini-list">
+          <div class="mini-item"><span>Delayed lanes</span><strong id="kpi-delayed">0</strong></div>
+          <div class="mini-item"><span>Drivers active</span><strong id="kpi-drivers">0</strong></div>
+          <div class="mini-item"><span>Delivered today</span><strong id="kpi-delivered">0</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="stats-row">
+      <div class="stat-card"><div class="stat-label">Shipments</div><div class="stat-value" id="kpi-shipments">0</div></div>
+      <div class="stat-card"><div class="stat-label">In Transit</div><div class="stat-value" id="kpi-transit">0</div></div>
+      <div class="stat-card"><div class="stat-label">Drivers</div><div class="stat-value" id="kpi-drivers">0</div></div>
+      <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="kpi-revenue">Rs 0</div></div>
+    </section>
+
+    <section class="grid-2">
+      <article class="chart-card">
+        <h3 style="margin-top:0">Status Overview</h3>
+        <canvas id="statusChart"></canvas>
+      </article>
+      <article class="panel">
+        <h3 style="margin-top:0">Next actions</h3>
+        <div class="mini-list">
+          <div class="mini-item"><span>Review new shipment assignments</span><strong>Ops</strong></div>
+          <div class="mini-item"><span>Check gate queue and entries</span><strong>Gate</strong></div>
+          <div class="mini-item"><span>Follow up unpaid invoices</span><strong>Finance</strong></div>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+auth.requireAuth();
+(async function init(){
+  try {
+    const overview = await LogiFlowDashboard.loadDashboardOverview();
+    LogiFlowDashboard.renderKpis(overview.kpis || {});
+    const ctx = document.getElementById('statusChart');
+    if (ctx) {
+      const status = overview.charts?.shipmentStatus || {};
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(status),
+          datasets: [{ data: Object.values(status), backgroundColor: ['#ef9f27','#22d3ee','#22c55e','#ef4444','#64748b'] }]
+        },
+        options: { plugins: { legend: { labels: { color: '#cbd5e1' } } } }
+      });
+    }
+  } catch (err) {
+    Toast.error(err.message || 'Failed to load dashboard');
+  }
+})();
+</script>
+</body>
+</html>

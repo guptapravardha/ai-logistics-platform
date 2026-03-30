@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics - LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">LF</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="shipments.html" class="nav-item">Shipments</a>
+      <a href="drivers.html" class="nav-item">Drivers</a>
+      <a href="fleet.html" class="nav-item">Fleet</a>
+      <a href="analytics.html" class="nav-item active">Analytics</a>
+      <a href="ai.html" class="nav-item">AI Hub</a>
+    </nav>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left"><button class="menu-toggle" onclick="toggleSidebar()">Menu</button><h1 class="page-title">Analytics</h1></div>
+    </div>
+    <section class="stats-row">
+      <div class="stat-card"><div class="stat-label">Total Shipments</div><div class="stat-value" id="kpi-shipments">0</div></div>
+      <div class="stat-card"><div class="stat-label">Delivered</div><div class="stat-value" id="kpi-delivered">0</div></div>
+      <div class="stat-card"><div class="stat-label">In Transit</div><div class="stat-value" id="kpi-transit">0</div></div>
+      <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="kpi-revenue">Rs 0</div></div>
+    </section>
+    <section class="grid-2">
+      <article class="chart-card"><h3 style="margin-top:0">Shipment Status</h3><canvas id="analyticsShipmentChart"></canvas></article>
+      <article class="chart-card"><h3 style="margin-top:0">Payment Status</h3><canvas id="analyticsPaymentChart"></canvas></article>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+auth.requireAuth();
+(async function init(){
+  const overview = await LogiFlowDashboard.loadDashboardOverview();
+  LogiFlowDashboard.renderKpis(overview.kpis || {});
+  new Chart(document.getElementById('analyticsShipmentChart'), {
+    type: 'bar',
+    data: { labels: Object.keys(overview.charts?.shipmentStatus || {}), datasets: [{ data: Object.values(overview.charts?.shipmentStatus || {}), backgroundColor: '#ef9f27' }] },
+    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#cbd5e1' } }, y: { ticks: { color: '#cbd5e1' } } } }
+  });
+  new Chart(document.getElementById('analyticsPaymentChart'), {
+    type: 'pie',
+    data: { labels: Object.keys(overview.charts?.paymentStatus || {}), datasets: [{ data: Object.values(overview.charts?.paymentStatus || {}), backgroundColor: ['#22c55e','#ef9f27','#ef4444','#64748b'] }] },
+    options: { plugins: { legend: { labels: { color: '#cbd5e1' } } } }
+  });
+})();
+</script>
+</body>
+</html>

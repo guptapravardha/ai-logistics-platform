@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Hub - LogiFlow</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">LF</span><span class="logo-text">LogiFlow</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="analytics.html" class="nav-item">Analytics</a>
+      <a href="ai.html" class="nav-item active">AI Hub</a>
+    </nav>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left"><button class="menu-toggle" onclick="toggleSidebar()">Menu</button><h1 class="page-title">AI Hub</h1></div>
+    </div>
+    <section class="grid-2">
+      <article class="panel">
+        <h3 style="margin-top:0">AI Modules</h3>
+        <div class="mini-list">
+          <button class="btn btn-primary" onclick="runAI('route-optimize')">Route Optimization</button>
+          <button class="btn btn-primary" onclick="runAI('price-predict')">Price Prediction</button>
+          <button class="btn btn-primary" onclick="runAI('delay-predict')">Delay Prediction</button>
+          <button class="btn btn-primary" onclick="runAI('vendor-match')">Vendor Match</button>
+          <button class="btn btn-primary" onclick="runAI('ocr')">Document OCR</button>
+          <button class="btn btn-primary" onclick="runAI('demand-forecast')">Demand Forecast</button>
+          <button class="btn btn-primary" onclick="runAI('fraud-detect')">Fraud Detection</button>
+        </div>
+      </article>
+      <article class="panel">
+        <h3 style="margin-top:0">AI Output</h3>
+        <pre id="ai-output" style="white-space:pre-wrap;color:#cbd5e1"></pre>
+      </article>
+    </section>
+  </main>
+</div>
+<script src="../js/app.js"></script>
+<script>
+auth.requireAuth();
+async function runAI(endpoint) {
+  try {
+    const payload = {
+      origin: 'Pune',
+      destination: 'Delhi',
+      weight: 1200,
+      distance: 1480,
+      shipmentId: 'demo',
+      message: 'How do I reduce delay risk for this dispatch?'
+    };
+    const res = await api.post(`/ai/${endpoint}`, payload);
+    document.getElementById('ai-output').textContent = JSON.stringify(res.data, null, 2);
+  } catch (err) {
+    Toast.error(err.message || 'AI request failed');
+  }
+}
+</script>
+</body>
+</html>

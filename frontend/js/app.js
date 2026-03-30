@@ -7,7 +7,14 @@
 'use strict';
 
 /* ─── Constants ─── */
-const API_BASE   = '/api';
+const API_ORIGIN = (() => {
+  if (window.location.protocol === 'file:') return 'http://localhost:5000';
+  if (window.location.protocol.startsWith('http') && window.location.port && window.location.port !== '5000') {
+    return `${window.location.protocol}//${window.location.hostname}:5000`;
+  }
+  return '';
+})();
+const API_BASE   = `${API_ORIGIN}/api`;
 const TOKEN_KEY  = 'lf-token';
 const USER_KEY   = 'lf-user';
 const THEME_KEY  = 'lf-theme';
@@ -567,5 +574,80 @@ window.requestNotificationPermission = async function() {
   const perm = await Notification.requestPermission();
   return perm === 'granted';
 };
+
+/* ================================================================
+   Sidebar Toggle
+   ================================================================ */
+window.toggleSidebar = function() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('open');
+};
+
+/* ================================================================
+   Floating AI Assistant
+   ================================================================ */
+async function sendAssistantMessage(message) {
+  const res = await api.post('/ai/chat', { message, channel: 'widget' });
+  return res.data?.reply || 'I could not generate a response right now.';
+}
+
+function initChatWidget() {
+  if (document.getElementById('lf-chat-widget')) return;
+
+  const widget = document.createElement('section');
+  widget.id = 'lf-chat-widget';
+  widget.className = 'chat-widget';
+  widget.innerHTML = `
+    <div class="glass-card chat-panel" id="lf-chat-panel" hidden>
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+        <div>
+          <h3 style="margin:0 0 6px">LogiFlow AI</h3>
+          <p class="muted" style="margin:0">Ask about shipments, delays, payments, drivers, or platform help.</p>
+        </div>
+      </div>
+      <div class="chat-feed" id="lf-chat-feed">
+        <div class="chat-bubble"><strong>Assistant:</strong> I can help admins, managers, drivers, suppliers, and gate staff use LogiFlow.</div>
+      </div>
+      <form class="chat-form" id="lf-chat-form">
+        <input id="lf-chat-input" type="text" placeholder="Ask LogiFlow AI..." required />
+        <button class="btn-p" type="submit">Send</button>
+      </form>
+    </div>
+    <button class="chat-toggle" id="lf-chat-toggle" type="button">AI</button>
+  `;
+  document.body.appendChild(widget);
+
+  const panel = document.getElementById('lf-chat-panel');
+  const toggle = document.getElementById('lf-chat-toggle');
+  const form = document.getElementById('lf-chat-form');
+  const input = document.getElementById('lf-chat-input');
+  const feed = document.getElementById('lf-chat-feed');
+
+  toggle.addEventListener('click', () => {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) input.focus();
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    feed.insertAdjacentHTML('beforeend', `<div class="chat-bubble"><strong>You:</strong> ${message}</div>`);
+    input.value = '';
+    try {
+      const reply = await sendAssistantMessage(message);
+      feed.insertAdjacentHTML('beforeend', `<div class="chat-bubble"><strong>Assistant:</strong> ${reply}</div>`);
+    } catch (err) {
+      feed.insertAdjacentHTML('beforeend', `<div class="chat-bubble"><strong>Assistant:</strong> ${err.message || 'Assistant unavailable.'}</div>`);
+    }
+    feed.scrollTop = feed.scrollHeight;
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initChatWidget);
+} else {
+  initChatWidget();
+}
 
 console.info('%c LogiFlow OS v1.0.0 ', 'background:#FF5500;color:#fff;font-family:monospace;font-weight:bold;padding:4px 8px;border-radius:3px');
